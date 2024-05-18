@@ -28,14 +28,14 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
   const isARequest = searchParams.get("request");
   const getChats = async () => {
     const chats = await fetchChats();
-    console.log(chats);
+
     if (!chats) return;
     setChats(chats);
   };
 
   const getRequests = async () => {
     const requests = await fetchRequests();
-    console.log(requests);
+
     if (!requests) return;
     setRequests(requests);
   };
@@ -43,10 +43,6 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
     getChats();
     getRequests();
   }, [pushUser]);
-
-  useEffect(() => {
-    console.log(latestMessage);
-  }, [latestMessage]);
 
   return (
     <div className="flex flex-row gap-2 p-2 min-h-screen max-h-screen">

@@ -25,7 +25,7 @@ const ChatItemInfo: React.FC<ChatItemInfoProps> = ({chatName}) => {
         setInfo(userInfo);
       } else {
         const chatInfo = await fetchGroupInfo(chatName);
-        console.log(chatInfo);
+
         setInfo(chatInfo);
       }
     };

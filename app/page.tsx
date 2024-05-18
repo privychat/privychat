@@ -6,7 +6,7 @@ import Navbar from "@/components/ui/navbar";
 import {usePushUser} from "@/providers/push-provider";
 import {useWalletClient} from "wagmi";
 export default function Home() {
-  const {login, authenticated} = usePrivy();
+  const {login, authenticated, ready} = usePrivy();
   const {data: signer} = useWalletClient();
   useEffect(() => {
     if (signer) {
@@ -27,7 +27,7 @@ export default function Home() {
         <Button
           onClick={() => login()}
           variant={"default"}
-          disabled={authenticated}
+          disabled={authenticated || !ready}
         >
           Login
         </Button>

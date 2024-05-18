@@ -20,7 +20,7 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
   const {data: addressForENSNameSearchInput} = useEnsAddress({
     name: search,
   });
-  console.log(addressForENSNameSearchInput);
+
   const filterChatWhileSearching = (chats: IFeeds[]) => {
     if (search.length === 0) return;
     const searchTerm = search.includes(".eth")

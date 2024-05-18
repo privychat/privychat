@@ -5,6 +5,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {useAccount} from "wagmi";
 import {Button} from "../ui/button";
 import {Skeleton} from "../ui/skeleton";
+import MessagePreProcessor from "./message-preprocessor";
 interface ChatMessagesWindowProps {
   chatId: string;
 }
@@ -71,23 +72,12 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
           const self = message.fromDID.slice(7) === address;
 
           return (
-            <div
+            <MessagePreProcessor
               key={message.link}
-              className={` flex flex-col ${
-                self ? "items-end mr-2" : "items-start ml-2"
-              }`}
-            >
-              <div
-                className={` p-3 px-4 ${
-                  self ? "bg-primary" : "bg-secondary"
-                } rounded-lg w-[fit-content] max-w-[80%]`}
-              >
-                {message.messageContent}{" "}
-              </div>{" "}
-              <span className="mt-1  text-muted-foreground text-sm">
-                {getTimeFormatted(message.timestamp)}
-              </span>
-            </div>
+              message={message.messageContent}
+              self={self}
+              timestamp={message.timestamp}
+            />
           );
         })}
 

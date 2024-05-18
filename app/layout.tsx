@@ -5,6 +5,7 @@ import PrivyWalletProvider from "@/providers/privy-provider";
 import {cn} from "@/lib/utils";
 import {ThemeProvider} from "@/providers/theme-provider";
 import PushUserProvider from "@/providers/push-provider";
+import {Toaster} from "@/components/ui/toaster";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
 
@@ -35,6 +36,7 @@ export default function RootLayout({
           <PrivyWalletProvider>
             <PushUserProvider>{children}</PushUserProvider>
           </PrivyWalletProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

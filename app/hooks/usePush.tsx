@@ -18,7 +18,7 @@ const usePush = () => {
   const fetchRequests = async () => {
     if (!pushUser) return;
     const messages = await pushUser.chat.list("REQUESTS");
-    console.log("messages", messages);
+
     return messages;
   };
 
