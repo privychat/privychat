@@ -40,7 +40,7 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
   const {sendTransactionAsync} = useSendTransaction();
   const [inputText, setInputText] = useState("");
   const [frameData, setFrameData] = useState<FrameDetails>(frameDetails);
-
+  const [frameLoading, setFrameLoading] = useState(false);
   // Function to trigger a transaction
   const TriggerTx = async (data: any) => {
     if (!data || !data.params || !data.chainId) {
@@ -86,12 +86,13 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
   };
   const onButtonClick = async (button: IFrameButton) => {
     if (!frameData) return;
-
+    setFrameLoading(true);
     if (button.action === "mint") {
       toast({
         title: "Error",
         description: "Mint Action is not supported",
       });
+      setFrameLoading(false);
       return;
     }
     let hash;
@@ -116,6 +117,7 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
     // If the button action is post_redirect or link, opens the link in a new tab
     if (button.action === "post_redirect" || button.action === "link") {
       window.open(button.target!, "_blank");
+      setFrameLoading(false);
       return;
     }
 
@@ -154,7 +156,10 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
         }
       );
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        setFrameLoading(false);
+        return;
+      }
 
       const data = await response.json();
       const {hash: txid, status} = await TriggerTx(data);
@@ -166,6 +171,7 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
           description: "Transaction failed",
           variant: "destructive",
         });
+        setFrameLoading(false);
         return;
       }
     }
@@ -222,6 +228,7 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
     setInputText("");
 
     setFrameData(frameResponse.frameDetails!);
+    setFrameLoading(false);
   };
 
   return (
@@ -231,9 +238,15 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
       }`}
     >
       <div
-        className={`max-w-lg size-84 flex flex-col gap-2 justify-center border-1 rounded-xl bg-white  `}
+        className={`max-w-lg size-84 flex flex-col gap-2 justify-center border-1 rounded-xl bg-white relative`} // Added relative here for positioning overlay
       >
-        <Link href={frameData.siteURL!} target="blank">
+        {frameLoading && (
+          <div className="absolute inset-0 bg-gray-300 flex justify-center items-center z-10 animate-pulse-opacity"></div>
+        )}
+        <Link
+          href={frameData?.siteURL || frameData?.postURL || ""}
+          target="blank"
+        >
           <Image
             src={frameData.image!}
             alt="Meta Image"
