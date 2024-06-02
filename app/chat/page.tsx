@@ -1,5 +1,5 @@
 "use client";
-import React, {useEffect, useRef, useState} from "react";
+import React, {Suspense, useEffect, useRef, useState} from "react";
 import {CONSTANTS, IFeeds} from "@pushprotocol/restapi";
 import ChatItemList from "@/components/chat/chat-item-list";
 import {usePushUser} from "@/providers/push-provider";
@@ -10,18 +10,14 @@ import {Badge} from "@/components/ui/badge";
 import usePush from "@/app/hooks/usePush";
 import {useSearchParams} from "next/navigation";
 
-interface ChatPageProps {
-  params: {
-    chatId: string;
-  };
-}
-const ChatPage: React.FC<ChatPageProps> = ({params}) => {
+const ChatPage = () => {
   const [chats, setChats] = useState<IFeeds[] | undefined>();
   const [requests, setRequests] = useState<IFeeds[] | undefined>();
   const {pushUser, latestMessage} = usePushUser();
   const {fetchChats, fetchRequests} = usePush();
   const searchParams = useSearchParams();
-
+  const currentChatId = window.location.pathname.split("/").pop();
+  console.log(currentChatId);
   const isARequest = searchParams.get("request");
   const getChats = async () => {
     const chats = await fetchChats();
@@ -42,51 +38,53 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
   }, [pushUser]);
 
   return (
-    <div className="flex flex-row gap-2 p-2 min-h-screen max-h-screen">
-      <div className="max-w-[400px] w-[400px] flex flex-col">
-        <UserInfo />
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="flex flex-row gap-2 p-2 min-h-screen max-h-screen">
+        <div className="max-w-[400px] w-[400px] flex flex-col">
+          <UserInfo />
 
-        <Tabs
-          defaultValue={isARequest ? "requests" : "chats"}
-          className="w-[400px] py-2"
-        >
-          <TabsList className="min-w-[400px] flex  justify-evenly">
-            <TabsTrigger value="chats" className="w-[50%]">
-              Chats
-            </TabsTrigger>
-            <TabsTrigger
-              value="requests"
-              className="w-[50%] flex flex-row items-center "
-            >
-              <span>Requests</span>
-              {requests && requests.length > 0 && (
-                <Badge variant="default" className="ml-2 rounded-full">
-                  {requests.length}
-                </Badge>
+          <Tabs
+            defaultValue={isARequest ? "requests" : "chats"}
+            className="w-[400px] py-2"
+          >
+            <TabsList className="min-w-[400px] flex  justify-evenly">
+              <TabsTrigger value="chats" className="w-[50%]">
+                Chats
+              </TabsTrigger>
+              <TabsTrigger
+                value="requests"
+                className="w-[50%] flex flex-row items-center "
+              >
+                <span>Requests</span>
+                {requests && requests.length > 0 && (
+                  <Badge variant="default" className="ml-2 rounded-full">
+                    {requests.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="chats">
+              {chats ? (
+                <ChatItemList chats={chats} selectedChat={currentChatId} />
+              ) : (
+                <ChatItemListLoader />
               )}
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="chats">
-            {chats ? (
-              <ChatItemList chats={chats} selectedChat={params.chatId} />
-            ) : (
-              <ChatItemListLoader />
-            )}
-          </TabsContent>
-          <TabsContent value="requests">
-            {requests ? (
-              <ChatItemList
-                chats={requests}
-                selectedChat={params.chatId}
-                isInRequestsTab={true}
-              />
-            ) : (
-              <ChatItemListLoader />
-            )}
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+            <TabsContent value="requests">
+              {requests ? (
+                <ChatItemList
+                  chats={requests}
+                  selectedChat={currentChatId}
+                  isInRequestsTab={true}
+                />
+              ) : (
+                <ChatItemListLoader />
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </Suspense>
   );
 };
 

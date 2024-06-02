@@ -66,7 +66,7 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
     makeItVisible.current?.scrollIntoView();
   }, [messages]);
   return (
-    <div className="flex flex-col flex-grow gap-2 my-2 max-h-[85%] overflow-y-auto">
+    <div className="flex flex-col flex-grow gap-2 my-2 max-h-[90%] overflow-y-auto">
       {!loading &&
         messages?.map((message) => {
           const self = message.fromDID.slice(7) === address;

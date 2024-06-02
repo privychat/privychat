@@ -51,7 +51,7 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
 
         <Tabs
           defaultValue={isARequest ? "requests" : "chats"}
-          className="w-[400px] py-2"
+          className="w-[405px] py-2 max-h-screen overflow-y-auto overflow-x-hidden"
         >
           <TabsList className="min-w-[400px] flex  justify-evenly">
             <TabsTrigger value="chats" className="w-[50%]">
@@ -89,7 +89,7 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
           </TabsContent>
         </Tabs>
       </div>
-      <div className="w-full flex flex-col">
+      <div className="w-full h-[98vh] flex flex-col justify-between">
         <ChatItemInfo chatName={params.chatId} />
         <ChatMessagesWindow chatId={params.chatId} />
         <ChatMessageInput chatId={params.chatId} />

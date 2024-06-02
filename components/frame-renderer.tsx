@@ -241,7 +241,7 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
         className={`max-w-lg size-84 flex flex-col gap-2 justify-center border-1 rounded-xl bg-white relative`} // Added relative here for positioning overlay
       >
         {frameLoading && (
-          <div className="absolute inset-0 bg-gray-300 flex justify-center items-center z-10 animate-pulse-opacity"></div>
+          <div className="absolute inset-0 bg-gray-300 flex justify-center items-center z-10 animate-pulse-opacity rounded-xl"></div>
         )}
         <Link
           href={frameData?.siteURL || frameData?.postURL || ""}
