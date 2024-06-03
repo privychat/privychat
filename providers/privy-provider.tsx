@@ -5,6 +5,7 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {createConfig, WagmiProvider} from "@privy-io/wagmi";
 import {mainnet, polygon, base} from "viem/chains";
 import {http} from "wagmi";
+import {useEffect} from "react";
 
 export const config = createConfig({
   chains: [mainnet, polygon, base],

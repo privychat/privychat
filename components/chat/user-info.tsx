@@ -5,9 +5,12 @@ import {Avatar, AvatarFallback, AvatarImage} from "@radix-ui/react-avatar";
 import {useEnsName} from "wagmi";
 import {usePushUser} from "@/providers/push-provider";
 import {Skeleton} from "../ui/skeleton";
+import {Button} from "../ui/button";
+import {usePrivy} from "@privy-io/react-auth";
 
 const UserInfo = () => {
   const {pushUser} = usePushUser();
+  const {logout} = usePrivy();
   const [userInfo, setUserInfo] = useState<any | undefined>();
   const {data: ensName} = useEnsName({
     address: userInfo?.did.slice(7) as `0x${string}`,

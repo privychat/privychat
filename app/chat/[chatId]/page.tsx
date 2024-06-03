@@ -11,7 +11,8 @@ import usePush from "@/app/hooks/usePush";
 import ChatItemInfo from "@/components/chat/chat-item-info";
 import ChatMessagesWindow from "@/components/chat/chat-message-window";
 import ChatMessageInput from "@/components/chat/chat-message-input";
-import {useSearchParams} from "next/navigation";
+
+import {useParams} from "next/navigation";
 
 interface ChatPageProps {
   params: {
@@ -23,9 +24,8 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
   const [requests, setRequests] = useState<IFeeds[] | undefined>();
   const {pushUser, latestMessage} = usePushUser();
   const {fetchChats, fetchRequests} = usePush();
-  const searchParams = useSearchParams();
+  const {request: isARequest} = useParams();
 
-  const isARequest = searchParams.get("request");
   const getChats = async () => {
     const chats = await fetchChats();
 

@@ -1,5 +1,10 @@
 "use client";
-import React, {Suspense, useEffect, useRef, useState} from "react";
+import React, {
+  Suspense as ReactSuspense,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {CONSTANTS, IFeeds} from "@pushprotocol/restapi";
 import ChatItemList from "@/components/chat/chat-item-list";
 import {usePushUser} from "@/providers/push-provider";
@@ -8,17 +13,20 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import ChatItemListLoader from "@/components/chat/chat-item-list-loader";
 import {Badge} from "@/components/ui/badge";
 import usePush from "@/app/hooks/usePush";
-import {useSearchParams} from "next/navigation";
-
-const ChatPage = () => {
+import {useParams} from "next/navigation";
+interface ChatPageProps {
+  params: {
+    chatId: string;
+  };
+}
+const ChatPage: React.FC<ChatPageProps> = ({params}) => {
   const [chats, setChats] = useState<IFeeds[] | undefined>();
   const [requests, setRequests] = useState<IFeeds[] | undefined>();
   const {pushUser, latestMessage} = usePushUser();
   const {fetchChats, fetchRequests} = usePush();
-  const searchParams = useSearchParams();
-  const currentChatId = window.location.pathname.split("/").pop();
-  console.log(currentChatId);
-  const isARequest = searchParams.get("request");
+  const currentChatId = params.chatId;
+
+  const {request: isARequest} = useParams();
   const getChats = async () => {
     const chats = await fetchChats();
 
@@ -36,9 +44,8 @@ const ChatPage = () => {
     getChats();
     getRequests();
   }, [pushUser]);
-
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <ReactSuspense fallback={<div>Loading...</div>}>
       <div className="flex flex-row gap-2 p-2 min-h-screen max-h-screen">
         <div className="max-w-[400px] w-[400px] flex flex-col">
           <UserInfo />
@@ -84,7 +91,7 @@ const ChatPage = () => {
           </Tabs>
         </div>
       </div>
-    </Suspense>
+    </ReactSuspense>
   );
 };
 
