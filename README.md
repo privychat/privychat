@@ -2,6 +2,12 @@
 
 This is an open-source client for Push Chat. We welcome contributions from anyone interested in improving this project. You can contribute by checking the issues on our GitHub repository and raising a Pull Request (PR) with your proposed changes.
 
+## Features
+
+- Wallet to Wallet Messaging
+- ENS name resolution
+- Support for Farcaster Frames & Open Frames
+
 ## How to Contribute
 
 1. Fork the repository.
