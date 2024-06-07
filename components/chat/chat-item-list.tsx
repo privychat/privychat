@@ -74,6 +74,7 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
         chats.map((chat) => {
           const isGroupChat = chat.groupInformation !== null;
           if (chat.chatId === undefined) return;
+          console.log("chat", chat);
           return (
             <ChatItem
               key={chat.chatId}
@@ -94,7 +95,6 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
       {filteredChats.length > 0 &&
         filteredChats.map((chat) => {
           const isGroupChat = chat.groupInformation !== undefined;
-
           // if (chat.chatId === undefined) return;
           return (
             <ChatItem

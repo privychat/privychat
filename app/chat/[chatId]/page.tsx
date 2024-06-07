@@ -46,7 +46,7 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
 
   return (
     <div className="flex flex-row gap-2 p-2 min-h-screen max-h-screen">
-      <div className="max-w-[400px] w-[400px] flex flex-col">
+      <div className="max-w-[400px] w-[400px] hidden md:flex flex-col">
         <UserInfo />
 
         <Tabs
@@ -89,10 +89,17 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
           </TabsContent>
         </Tabs>
       </div>
-      <div className="w-full h-[98vh] flex flex-col justify-between">
+      <div className="w-full h-[98vh] hidden md:flex flex-col justify-between">
         <ChatItemInfo chatName={params.chatId} />
         <ChatMessagesWindow chatId={params.chatId} />
         <ChatMessageInput chatId={params.chatId} />
+      </div>
+
+      <div className="md:hidden flex items-center justify-center">
+        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 text-center">
+          Privy Chat is currently only optimised for desktop experience. Please
+          visit on a desktop browser.
+        </h2>
       </div>
     </div>
   );

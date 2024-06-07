@@ -5,8 +5,16 @@ import {Avatar, AvatarFallback, AvatarImage} from "@radix-ui/react-avatar";
 import {useEnsName} from "wagmi";
 import {usePushUser} from "@/providers/push-provider";
 import {Skeleton} from "../ui/skeleton";
-import {Button} from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import {usePrivy} from "@privy-io/react-auth";
+import {EllipsisVertical} from "lucide-react";
 
 const UserInfo = () => {
   const {pushUser} = usePushUser();
@@ -49,8 +57,16 @@ const UserInfo = () => {
             {ensName ??
               `${userInfo?.did.slice(7, 13)}...${userInfo?.did.slice(-4)}`}
           </h4>
-          <div>
+          <div className="flex flex-row gap-2 items-center">
             <ThemeToggleSwitch />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild className="cursor-pointer">
+                <EllipsisVertical />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       ) : (

@@ -8,7 +8,7 @@ import {usePrivy} from "@privy-io/react-auth";
 
 const Navbar = () => {
   const {theme} = useTheme();
-  const {login, authenticated, logout} = usePrivy();
+  const {login, authenticated, logout, ready} = usePrivy();
   return (
     <div className="flex flex-row justify-between p-6">
       <Image
@@ -28,6 +28,7 @@ const Navbar = () => {
               login();
             }
           }}
+          disabled={!ready}
         >
           {authenticated ? "Logout" : "Login"}
         </Button>
