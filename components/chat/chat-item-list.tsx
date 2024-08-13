@@ -3,8 +3,7 @@ import ChatItem from "./chat-item";
 import {IFeeds} from "@pushprotocol/restapi";
 import {Search} from "lucide-react";
 import {Input} from "../ui/input";
-import {useEnsAddress, useEnsName} from "wagmi";
-import {normalize} from "viem/ens";
+import {useEnsAddress} from "wagmi";
 import {isAddress} from "viem";
 interface ChatItemListProps {
   chats: IFeeds[];
@@ -22,8 +21,12 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
     name: search,
     chainId: 1,
   });
+
   const filterChatWhileSearching = (chats: IFeeds[]) => {
-    if (search.length === 0) return;
+    if (search.length === 0) {
+      setFilteredChats(chats);
+      return;
+    }
 
     const searchTerm = search.includes(".eth")
       ? addressForENSNameSearchInput ?? search
@@ -70,9 +73,8 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
         />
       </div>
       <div className="overflow-y-hidden overflow-x-hidden">
-        {chats &&
-          search === "" &&
-          chats.map((chat) => {
+        {filteredChats.length > 0 &&
+          filteredChats.map((chat) => {
             const isGroupChat = chat.groupInformation !== null;
             if (chat.chatId === undefined) return;
 
@@ -95,26 +97,6 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
                 }
                 isItARequest={isInRequestsTab ?? false}
                 groupName={chat.groupInformation?.groupName}
-              />
-            );
-          })}
-        {filteredChats.length > 0 &&
-          filteredChats.map((chat) => {
-            const isGroupChat = chat.groupInformation !== undefined;
-            // if (chat.chatId === undefined) return;
-            return (
-              <ChatItem
-                key={chat.chatId ?? chat.did.slice(7)}
-                chatIcon={chat.profilePicture ?? ""}
-                chatName={isGroupChat ? chat.chatId : chat.did.slice(7)}
-                chatMessage={chat?.msg?.messageContent ?? ""}
-                chatTimeStamp={chat?.msg?.timestamp ?? ""}
-                active={
-                  selectedChat ===
-                  (isGroupChat ? chat.chatId : chat.did.slice(7))
-                }
-                isItARequest={isInRequestsTab ?? false}
-                groupName={chat?.groupInformation?.groupName}
               />
             );
           })}
