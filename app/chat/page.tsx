@@ -20,30 +20,13 @@ interface ChatPageProps {
   };
 }
 const ChatPage: React.FC<ChatPageProps> = ({params}) => {
-  const [chats, setChats] = useState<IFeeds[] | undefined>();
-  const [requests, setRequests] = useState<IFeeds[] | undefined>();
-  const {pushUser, latestMessage} = usePushUser();
+  const {pushUser, latestMessage, userChats, userChatRequests} = usePushUser();
   const {fetchChats, fetchRequests} = usePush();
+
   const currentChatId = params.chatId;
 
   const {request: isARequest} = useParams();
-  const getChats = async () => {
-    const chats = await fetchChats();
 
-    if (!chats) return;
-    setChats(chats);
-  };
-
-  const getRequests = async () => {
-    const requests = await fetchRequests();
-
-    if (!requests) return;
-    setRequests(requests);
-  };
-  useEffect(() => {
-    getChats();
-    getRequests();
-  }, [pushUser]);
   return (
     <ReactSuspense fallback={<div>Loading...</div>}>
       <div className="flex flex-row gap-2 p-2 min-h-screen max-h-screen">
@@ -63,24 +46,24 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
                 className="w-[50%] flex flex-row items-center "
               >
                 <span>Requests</span>
-                {requests && requests.length > 0 && (
+                {userChatRequests && userChatRequests.length > 0 && (
                   <Badge variant="default" className="ml-2 rounded-full">
-                    {requests.length}
+                    {userChatRequests.length}
                   </Badge>
                 )}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="chats">
-              {chats ? (
-                <ChatItemList chats={chats} selectedChat={currentChatId} />
+              {userChats ? (
+                <ChatItemList chats={userChats} selectedChat={currentChatId} />
               ) : (
                 <ChatItemListLoader />
               )}
             </TabsContent>
             <TabsContent value="requests">
-              {requests ? (
+              {userChatRequests ? (
                 <ChatItemList
-                  chats={requests}
+                  chats={userChatRequests}
                   selectedChat={currentChatId}
                   isInRequestsTab={true}
                 />

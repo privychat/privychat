@@ -17,22 +17,12 @@ import {usePrivy} from "@privy-io/react-auth";
 import {EllipsisVertical} from "lucide-react";
 
 const UserInfo = () => {
-  const {pushUser} = usePushUser();
+  const {pushUser, userInfo} = usePushUser();
   const {logout} = usePrivy();
-  const [userInfo, setUserInfo] = useState<any | undefined>();
+
   const {data: ensName} = useEnsName({
     address: userInfo?.did.slice(7) as `0x${string}`,
   });
-
-  useEffect(() => {
-    const getUserInfo = async () => {
-      if (!pushUser) return;
-      const userInfo = await pushUser.info();
-
-      setUserInfo(userInfo);
-    };
-    getUserInfo();
-  }, [pushUser]);
 
   return (
     <>
@@ -64,7 +54,14 @@ const UserInfo = () => {
                 <EllipsisVertical />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    logout();
+                    window.location.replace("/");
+                  }}
+                >
+                  Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

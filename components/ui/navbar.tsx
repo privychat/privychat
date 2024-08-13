@@ -19,7 +19,7 @@ const Navbar = () => {
       />
       <div className="flex flex-row items-center gap-4">
         <ThemeToggleSwitch />
-        <Button
+        {/* <Button
           variant="default"
           onClick={() => {
             if (authenticated) {
@@ -31,7 +31,7 @@ const Navbar = () => {
           disabled={!ready}
         >
           {authenticated ? "Logout" : "Login"}
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

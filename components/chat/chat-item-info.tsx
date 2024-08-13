@@ -50,7 +50,7 @@ const ChatItemInfo: React.FC<ChatItemInfoProps> = ({chatName}) => {
           ensName ??
           `${chatName.slice(0, 6)}...${chatName.slice(-4)}`}
       </h4>
-      <div>{chatName.startsWith("0x") && <VideoIcon />}</div>
+      {/* <div>{chatName.startsWith("0x") && <VideoIcon />}</div> */}
     </div>
   );
 };

@@ -55,12 +55,12 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
 
   useEffect(() => {
     filterChatWhileSearching(chats);
-  }, [search]);
+  }, [search, addressForENSNameSearchInput]);
 
   return (
-    <div className="max-w-[400px] w-[400px]">
-      <div className="relative ml-auto flex-1 md:grow-0">
-        <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+    <div className="max-w-[400px] w-[400px] px-2">
+      <div className="relative ml-auto flex-1 md:grow-0 py-2">
+        <Search className="absolute left-2.5 top-5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
           placeholder="Search...vitalik.eth"
@@ -69,48 +69,56 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-      {chats &&
-        search === "" &&
-        chats.map((chat) => {
-          const isGroupChat = chat.groupInformation !== null;
-          if (chat.chatId === undefined) return;
-          console.log("chat", chat);
-          return (
-            <ChatItem
-              key={chat.chatId}
-              chatIcon={chat.profilePicture ?? ""}
-              chatName={
-                isGroupChat ? (chat.chatId as string) : chat.did.slice(7)
-              }
-              chatMessage={chat.msg.messageContent}
-              chatTimeStamp={chat.msg.timestamp}
-              active={
-                selectedChat === (isGroupChat ? chat.chatId : chat.did.slice(7))
-              }
-              isItARequest={isInRequestsTab ?? false}
-              groupName={chat.groupInformation?.groupName}
-            />
-          );
-        })}
-      {filteredChats.length > 0 &&
-        filteredChats.map((chat) => {
-          const isGroupChat = chat.groupInformation !== undefined;
-          // if (chat.chatId === undefined) return;
-          return (
-            <ChatItem
-              key={chat.chatId ?? chat.did.slice(7)}
-              chatIcon={chat.profilePicture ?? ""}
-              chatName={isGroupChat ? chat.chatId : chat.did.slice(7)}
-              chatMessage={chat?.msg?.messageContent ?? ""}
-              chatTimeStamp={chat?.msg?.timestamp ?? ""}
-              active={
-                selectedChat === (isGroupChat ? chat.chatId : chat.did.slice(7))
-              }
-              isItARequest={isInRequestsTab ?? false}
-              groupName={chat?.groupInformation?.groupName}
-            />
-          );
-        })}
+      <div className="overflow-y-hidden overflow-x-hidden">
+        {chats &&
+          search === "" &&
+          chats.map((chat) => {
+            const isGroupChat = chat.groupInformation !== null;
+            if (chat.chatId === undefined) return;
+
+            return (
+              <ChatItem
+                key={chat.chatId}
+                chatIcon={
+                  isGroupChat
+                    ? chat.groupInformation?.groupImage
+                    : chat.profilePicture ?? ""
+                }
+                chatName={
+                  isGroupChat ? (chat.chatId as string) : chat.did.slice(7)
+                }
+                chatMessage={chat.msg.messageContent}
+                chatTimeStamp={chat.msg.timestamp}
+                active={
+                  selectedChat ===
+                  (isGroupChat ? chat.chatId : chat.did.slice(7))
+                }
+                isItARequest={isInRequestsTab ?? false}
+                groupName={chat.groupInformation?.groupName}
+              />
+            );
+          })}
+        {filteredChats.length > 0 &&
+          filteredChats.map((chat) => {
+            const isGroupChat = chat.groupInformation !== undefined;
+            // if (chat.chatId === undefined) return;
+            return (
+              <ChatItem
+                key={chat.chatId ?? chat.did.slice(7)}
+                chatIcon={chat.profilePicture ?? ""}
+                chatName={isGroupChat ? chat.chatId : chat.did.slice(7)}
+                chatMessage={chat?.msg?.messageContent ?? ""}
+                chatTimeStamp={chat?.msg?.timestamp ?? ""}
+                active={
+                  selectedChat ===
+                  (isGroupChat ? chat.chatId : chat.did.slice(7))
+                }
+                isItARequest={isInRequestsTab ?? false}
+                groupName={chat?.groupInformation?.groupName}
+              />
+            );
+          })}
+      </div>
     </div>
   );
 };

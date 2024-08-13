@@ -21,12 +21,13 @@ export const getTimeFormatted = (ts: number) => {
     return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: true,
     });
   }
   return `${date.getDate().toString().padStart(2, "0")}/${date
     .getMonth()
     .toString()
-    .padStart(2, "0")}/${date.getFullYear()}`;
+    .padStart(2, "0")}`;
 };
 
 export function containsLink(message: string): boolean {

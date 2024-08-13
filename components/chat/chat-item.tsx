@@ -34,7 +34,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
       }
     >
       <div
-        className={`flex flex-row justify-evenly  gap-2 w-full p-4  hover:bg-gray-400/30 rounded-md ${
+        className={`flex flex-row justify-evenly relative  gap-2 w-full p-4  hover:bg-gray-400/30 rounded-md ${
           active && "bg-gray-400/30"
         }`}
       >
@@ -61,7 +61,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
           </p>
         </div>
 
-        <p className="flex flex-start">
+        <p className="absolute right-2 top-2">
           {latestMessage?.from === `eip155:${chatName}` ||
           latestMessage?.to.includes(`eip155:${chatName}`)
             ? getTimeFormatted(latestMessage.timestamp)
