@@ -1,11 +1,14 @@
+"use client";
 import usePush from "@/app/hooks/usePush";
-import {getTimeFormatted} from "@/lib/utils";
+import {assignColorsToParticipants, getTimeFormatted} from "@/lib/utils";
 import {usePushUser} from "@/providers/push-provider";
 import React, {useEffect, useRef, useState} from "react";
 import {useAccount} from "wagmi";
 import {Button} from "../ui/button";
 import {Skeleton} from "../ui/skeleton";
 import MessagePreProcessor from "./message-preprocessor";
+import {useRouter, useSearchParams} from "next/navigation";
+
 interface ChatMessagesWindowProps {
   chatId: string;
 }
@@ -13,6 +16,10 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [status, setStatus] = useState<any>();
   const [loading, setLoading] = useState(false);
+  const [isAGroup, setIsAGroup] = useState(false);
+  const [groupParticipants, setGroupParticipants] = useState<{
+    [key: string]: string;
+  }>({});
   const {
     fetchAllMessages,
     fetchChatStatus,
@@ -22,10 +29,16 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
   const {address} = useAccount();
   const {pushUser, latestMessage} = usePushUser();
   const makeItVisible = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isARequest = searchParams.get("request") === "true";
 
   useEffect(() => {
     const fetchStatus = async () => {
       const status = await fetchChatStatus(chatId);
+
+      setIsAGroup(status?.meta?.group ?? false);
+
       setStatus(status?.list);
     };
     fetchStatus();
@@ -63,6 +76,13 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
   }, [latestMessage]);
 
   useEffect(() => {
+    const partcipants = messages.map((message) => message.fromDID.slice(7));
+    const uniqueParticipants = Array.from(new Set(partcipants));
+    const participantsColors = assignColorsToParticipants(uniqueParticipants);
+    setGroupParticipants(participantsColors);
+    console.log(participantsColors);
+  }, [messages]);
+  useEffect(() => {
     makeItVisible.current?.scrollIntoView();
   }, [messages]);
   return (
@@ -77,6 +97,9 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
               message={message.messageContent}
               self={self}
               timestamp={message.timestamp}
+              isGroup={isAGroup}
+              sender={message.fromDID.slice(7)}
+              color={groupParticipants[message.fromDID.slice(7)]}
             />
           );
         })}
@@ -100,7 +123,7 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
           </div>
         </div>
       )}
-      {status === "REQUESTS" && (
+      {isARequest && status === "REQUESTS" && (
         <div
           className={` flex flex-col bg-secondary p-3 px-4  rounded-lg w-[fit-content] max-w-[80%]`}
         >
@@ -114,6 +137,7 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
               className="w-full"
               onClick={() => {
                 acceptChatRequest(chatId);
+                router.push(`/chat/${chatId}`);
               }}
             >
               Accept

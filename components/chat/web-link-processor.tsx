@@ -9,15 +9,23 @@ import {
 import React, {useEffect, useState} from "react";
 import FrameRenderer from "../frame-renderer";
 import {FrameDetails} from "@/app/types";
+import {Chat} from "@pushprotocol/restapi/src/lib/pushapi/chat";
+import ChatMessageBubble from "./chat-message-bubble";
 interface WebLinkProcessorProps {
   message: string;
   self: boolean;
   timestamp: number;
+  isGroup?: boolean;
+  sender?: string;
+  color?: string;
 }
 const WebLinkProcessor: React.FC<WebLinkProcessorProps> = ({
   message,
   self,
   timestamp,
+  isGroup,
+  sender,
+  color,
 }) => {
   const [frameDetails, setFrameDetails] = useState<FrameDetails | null>(null);
   const parseMessage = async () => {
@@ -45,24 +53,14 @@ const WebLinkProcessor: React.FC<WebLinkProcessorProps> = ({
           }}
         />
       ) : (
-        <div className="flex flex-col gap-2">
-          <div
-            className={` flex flex-col ${
-              self ? "items-end mr-2" : "items-start ml-2"
-            }`}
-          >
-            <div
-              className={` p-3 px-4 ${
-                self ? "bg-primary" : "bg-secondary"
-              } rounded-lg w-[fit-content] max-w-[80%]`}
-            >
-              {replaceLinks(message)}
-            </div>{" "}
-            <span className="mt-1  text-muted-foreground text-sm">
-              {getTimeFormatted(timestamp)}
-            </span>
-          </div>
-        </div>
+        <ChatMessageBubble
+          message={replaceLinks(message)}
+          self={self}
+          timestamp={timestamp}
+          sender={sender}
+          isGroup={isGroup}
+          color={color}
+        />
       )}
     </>
   );

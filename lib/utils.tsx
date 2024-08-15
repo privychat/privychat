@@ -75,7 +75,20 @@ export function replaceLinks(message: string): JSX.Element {
     </>
   );
 }
+export function assignColorsToParticipants(
+  participants: string[]
+): Record<string, string> {
+  const participantColors: Record<string, string> = {};
+  const hueStep = 360 / participants.length;
 
+  participants.forEach((participant, index) => {
+    const hue = hueStep * index;
+    const color = `hsl(${hue}, 50%, 50%)`; // Adjust saturation and lightness for readability
+    participantColors[participant] = color;
+  });
+
+  return participantColors;
+}
 export const getFrameMetadata = async (url: string) => {
   try {
     const response = await fetch(

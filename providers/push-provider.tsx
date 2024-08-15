@@ -1,5 +1,6 @@
 "use client";
 import usePush from "@/app/hooks/usePush";
+import {usePrivy} from "@privy-io/react-auth";
 import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
 import {createContext, useContext, useEffect, useRef, useState} from "react";
 import {useAccount, useWalletClient} from "wagmi";
@@ -50,6 +51,7 @@ export default function PushUserProvider({
   children: React.ReactNode;
 }) {
   const {data: signer} = useWalletClient();
+  const {authenticated, user} = usePrivy();
   const [pushUser, setPushUser] = useState<PushAPI | undefined>();
   const pushStream = useRef<any>(undefined);
   const [latestMessage, setLatestMessage] = useState<any>();
@@ -58,17 +60,21 @@ export default function PushUserProvider({
   const [userChatRequests, setUserChatRequests] = useState<
     IFeeds[] | undefined
   >();
-  const {fetchChats, fetchRequests} = usePush();
+
   const initializeUser = async () => {
     const user = await PushAPI.initialize(signer, {
       env: CONSTANTS.ENV.PROD,
     });
-    const userInfo = await user.info();
+
+    setPushUser(user);
+
+    const [userInfo, userChats, userChatRequests] = await Promise.all([
+      user.info(),
+      getChats(),
+      getRequests(),
+    ]);
 
     setUserInfo(userInfo);
-    setPushUser(user);
-    await getChats();
-    await getRequests();
     if (pushStream.current && pushStream.current.disconnected === false) return;
 
     const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
@@ -91,7 +97,9 @@ export default function PushUserProvider({
 
   const getChats = async () => {
     if (!pushUser) return;
-    const chats = await pushUser.chat.list("CHATS");
+    const chats = await pushUser.chat.list("CHATS", {
+      limit: 30,
+    });
 
     if (!chats) return;
     setUserChats(chats);
@@ -99,15 +107,15 @@ export default function PushUserProvider({
 
   const getRequests = async () => {
     if (!pushUser) return;
-    const requests = await pushUser.chat.list("REQUESTS");
+    const requests = await pushUser.chat.list("REQUESTS", {
+      limit: 30,
+    });
 
     if (!requests) return;
     setUserChatRequests(requests);
   };
   useEffect(() => {
-    if (window.location.pathname === "/") return;
-    if (!signer) return;
-    if (pushUser) return;
+    if (!signer || pushUser || !authenticated) return;
 
     initializeUser();
 
@@ -115,7 +123,7 @@ export default function PushUserProvider({
       console.log("disconnecting stream");
       pushStream?.current?.disconnect();
     };
-  }, [signer]);
+  }, [signer, user]);
 
   useEffect(() => {
     if (!pushUser) return;

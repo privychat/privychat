@@ -61,7 +61,7 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
   }, [search, addressForENSNameSearchInput]);
 
   return (
-    <div className="max-w-[400px] w-[400px] px-2">
+    <div className="w-full h-full">
       <div className="relative ml-auto flex-1 md:grow-0 py-2">
         <Search className="absolute left-2.5 top-5 h-4 w-4 text-muted-foreground" />
         <Input
@@ -72,7 +72,7 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-      <div className="overflow-y-hidden overflow-x-hidden">
+      <div className="overflow-y-auto h-full pb-8 pr-1">
         {filteredChats.length > 0 &&
           filteredChats.map((chat) => {
             const isGroupChat = chat.groupInformation !== null;

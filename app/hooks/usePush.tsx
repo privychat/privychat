@@ -2,7 +2,8 @@
 import {usePushUser} from "@/providers/push-provider";
 
 const usePush = () => {
-  const {pushUser} = usePushUser();
+  const {pushUser, setUserChats, setUserChatRequests, userChatRequests} =
+    usePushUser();
 
   const sendMessages = async (recipient: string, message: string) => {
     if (!pushUser) return;
@@ -52,6 +53,12 @@ const usePush = () => {
   const acceptChatRequest = async (chatId: string) => {
     if (!pushUser) return;
     await pushUser.chat.accept(chatId);
+    const chats = await fetchChats();
+    setUserChats(chats);
+    const requests = userChatRequests?.filter(
+      (request) => request.chatId !== chatId
+    );
+    setUserChatRequests(requests);
   };
 
   const rejectChatRequest = async (chatId: string) => {
