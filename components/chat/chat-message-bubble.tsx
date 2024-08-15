@@ -47,7 +47,7 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
         self ? "justify-end mr-2" : "justify-start ml-2"
       }`}
     >
-      {!self && (
+      {isGroup && !self && (
         <Image
           src={
             user?.profile.picture ??

@@ -9,6 +9,7 @@ import {Skeleton} from "../ui/skeleton";
 import MessagePreProcessor from "./message-preprocessor";
 import {useRouter, useSearchParams} from "next/navigation";
 import {Badge} from "../ui/badge";
+import ChatLoadingSkeleton from "./chat-loading-skeleton";
 
 interface ChatMessagesWindowProps {
   chatId: string;
@@ -93,6 +94,26 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
           const previousMessageTimestamp =
             messages[messages.indexOf(message) - 1]?.timestamp;
           const currentMessageTimestamp = message.timestamp;
+          if (!previousMessageTimestamp) {
+            return (
+              <div key={message.link} className="flex flex-col w-full">
+                <Badge className="bg-secondary text-white font-light text-md px-4 py-1 text-sm  w-fit m-auto my-8">
+                  {new Date(currentMessageTimestamp).toLocaleDateString(
+                    "en-GB"
+                  )}
+                </Badge>
+                <MessagePreProcessor
+                  key={message.link}
+                  message={message.messageContent}
+                  self={self}
+                  timestamp={message.timestamp}
+                  isGroup={isAGroup}
+                  sender={message.fromDID.slice(7)}
+                  color={groupParticipants[message.fromDID.slice(7)]}
+                />
+              </div>
+            );
+          }
           if (previousMessageTimestamp) {
             const previousMessageDate = new Date(previousMessageTimestamp);
             const currentMessageDate = new Date(currentMessageTimestamp);
@@ -150,25 +171,7 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
           );
         })}
 
-      {loading && (
-        <div className="flex flex-col gap-4">
-          <div className="flex justify-end space-y-2 my-2 mr-2">
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-[250px] rounded-md" />
-            </div>
-          </div>
-          <div className="flex justify-start space-y-2 my-2 ml-2">
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-[250px] rounded-md" />
-            </div>
-          </div>
-          <div className="flex justify-end space-y-2 my-2 mr-2">
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-[250px] rounded-md" />
-            </div>
-          </div>
-        </div>
-      )}
+      {loading && <ChatLoadingSkeleton />}
       {isARequest && status === "REQUESTS" && (
         <div
           className={` flex flex-col bg-secondary p-3 px-4  rounded-lg w-[fit-content] max-w-[80%]`}
