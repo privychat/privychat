@@ -8,6 +8,7 @@ import {Button} from "../ui/button";
 import {Skeleton} from "../ui/skeleton";
 import MessagePreProcessor from "./message-preprocessor";
 import {useRouter, useSearchParams} from "next/navigation";
+import {Badge} from "../ui/badge";
 
 interface ChatMessagesWindowProps {
   chatId: string;
@@ -80,7 +81,6 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
     const uniqueParticipants = Array.from(new Set(partcipants));
     const participantsColors = assignColorsToParticipants(uniqueParticipants);
     setGroupParticipants(participantsColors);
-    console.log(participantsColors);
   }, [messages]);
   useEffect(() => {
     makeItVisible.current?.scrollIntoView();
@@ -90,7 +90,53 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
       {!loading &&
         messages?.map((message) => {
           const self = message.fromDID.slice(7) === address;
+          const previousMessageTimestamp =
+            messages[messages.indexOf(message) - 1]?.timestamp;
+          const currentMessageTimestamp = message.timestamp;
+          if (previousMessageTimestamp) {
+            const previousMessageDate = new Date(previousMessageTimestamp);
+            const currentMessageDate = new Date(currentMessageTimestamp);
 
+            const oneDay = 24 * 60 * 60 * 1000;
+
+            if (
+              Math.abs(
+                currentMessageDate.getTime() - previousMessageDate.getTime()
+              ) >= oneDay
+            ) {
+              let displayDate = "";
+              const today = new Date();
+              const yesterday = new Date(today);
+              yesterday.setDate(yesterday.getDate() - 1);
+
+              if (currentMessageDate.toDateString() === today.toDateString()) {
+                displayDate = "Today";
+              } else if (
+                currentMessageDate.toDateString() === yesterday.toDateString()
+              ) {
+                displayDate = "Yesterday";
+              } else {
+                displayDate = currentMessageDate.toLocaleDateString("en-GB");
+              }
+
+              return (
+                <div key={message.link} className="flex flex-col w-full">
+                  <Badge className="bg-secondary text-white font-light text-md px-4 py-1 text-sm  w-fit m-auto my-8">
+                    {displayDate}
+                  </Badge>
+                  <MessagePreProcessor
+                    key={message.link}
+                    message={message.messageContent}
+                    self={self}
+                    timestamp={message.timestamp}
+                    isGroup={isAGroup}
+                    sender={message.fromDID.slice(7)}
+                    color={groupParticipants[message.fromDID.slice(7)]}
+                  />
+                </div>
+              );
+            }
+          }
           return (
             <MessagePreProcessor
               key={message.link}
