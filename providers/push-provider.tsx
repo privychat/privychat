@@ -98,17 +98,23 @@ export default function PushUserProvider({
   const getChats = async () => {
     if (!pushUser) return;
     const chats = await pushUser.chat.list("CHATS", {
-      limit: 30,
+      limit: 10,
     });
 
     if (!chats) return;
     setUserChats(chats);
+    const olderChats = await pushUser.chat.list("CHATS", {
+      limit: 30,
+    });
+    if (olderChats) {
+      setUserChats(olderChats);
+    }
   };
 
   const getRequests = async () => {
     if (!pushUser) return;
     const requests = await pushUser.chat.list("REQUESTS", {
-      limit: 30,
+      limit: 10,
     });
 
     if (!requests) return;

@@ -10,17 +10,19 @@ import {LightningBoltIcon} from "@radix-ui/react-icons";
 import {Bell} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button} from "./ui/button";
 import {toast} from "./ui/use-toast";
 import {
   useAccount,
   useChainId,
+  useEnsName,
   useSendTransaction,
   useSwitchChain,
 } from "wagmi";
 import {usePushUser} from "@/providers/push-provider";
 import {Input} from "./ui/input";
+import {IUser} from "@pushprotocol/restapi";
 interface FrameRendererProps {
   frameDetails: FrameDetails;
   messageMeta: {
@@ -28,10 +30,16 @@ interface FrameRendererProps {
     self: boolean;
     timestamp: number;
   };
+  isGroup?: boolean;
+  sender?: string;
+  color?: string;
 }
 const FrameRenderer: React.FC<FrameRendererProps> = ({
   frameDetails,
   messageMeta,
+  isGroup,
+  sender,
+  color,
 }) => {
   const {address} = useAccount();
   const {pushUser} = usePushUser();
@@ -41,7 +49,31 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
   const [inputText, setInputText] = useState("");
   const [frameData, setFrameData] = useState<FrameDetails>(frameDetails);
   const [frameLoading, setFrameLoading] = useState(false);
+
+  const {data: ensName} = useEnsName({
+    address: sender as `0x${string}`,
+  });
+  const formattedTime = new Date(
+    messageMeta.timestamp * 1000
+  ).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  const [user, setUser] = useState<IUser | undefined>();
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const user = await pushUser?.info({
+        overrideAccount: sender,
+      });
+      setUser(user);
+    };
+    fetchUserInfo();
+  }, [sender]);
   // Function to trigger a transaction
+
   const TriggerTx = async (data: any) => {
     if (!data || !data.params || !data.chainId) {
       toast({
@@ -296,20 +328,40 @@ const FrameRenderer: React.FC<FrameRendererProps> = ({
         </div>
       </div>
       <div
-        className={`flex flex-col ${
-          messageMeta.self ? "items-end" : "items-start"
-        }`}
+        className={`relative p-3 px-4 ${
+          messageMeta.self ? "bg-primary" : "bg-secondary"
+        } rounded-lg w-[fit-content] max-w-[50%]`}
       >
-        <div
-          className={`p-3 px-4 ${
-            messageMeta.self ? "bg-primary" : "bg-secondary"
-          } rounded-lg`}
-        >
-          {replaceLinks(messageMeta.message)}
-        </div>{" "}
-        <span className="mt-1 text-muted-foreground text-sm">
-          {getTimeFormatted(messageMeta.timestamp)}
-        </span>
+        {isGroup && !messageMeta.self && (
+          <p
+            className={`font-semibold mb-1`}
+            style={{
+              color: `${color}`,
+            }}
+          >
+            {ensName ??
+              (user?.profile.name
+                ? `~ ${user.profile.name} (${sender?.slice(
+                    0,
+                    6
+                  )}...${sender?.slice(-4)})`
+                : `${sender?.slice(0, 6)}...${sender?.slice(-4)}`)}
+          </p>
+        )}
+        <div className="flex flex-row my-1">
+          <div className="font-light leading-6 text-white ">
+            {replaceLinks(messageMeta.message)}
+          </div>
+          <div className="relative w-20">
+            <span
+              className={`align-right absolute bottom-0 right-0  text-muted-foreground text-sm ${
+                messageMeta.self && "text-white"
+              }`}
+            >
+              {formattedTime}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

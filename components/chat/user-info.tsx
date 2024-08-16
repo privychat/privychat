@@ -67,11 +67,10 @@ const UserInfo = () => {
           </div>
         </div>
       ) : (
-        <div className="flex items-center space-x-4  p-4">
+        <div className="flex items-center space-x-4  p-4 py-2 bg-gray-400/20 rounded-md">
           <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
-            <Skeleton className="h-4 w-[300px]" />
-            <Skeleton className="h-4 w-[300px]" />
+            <Skeleton className="h-4 w-[150px]" />
           </div>
         </div>
       )}

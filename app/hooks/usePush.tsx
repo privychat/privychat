@@ -36,12 +36,19 @@ const usePush = () => {
     const groupInfo = await pushUser.chat.group.info(chatId);
     return groupInfo;
   };
-  const fetchAllMessages = async (chatId: string) => {
+  const fetchAllMessages = async (chatId: string, reference?: string) => {
     if (!pushUser) return;
-    const messages = await pushUser.chat.history(chatId, {
-      limit: 20,
-    });
-    return messages;
+    try {
+      const messages = await pushUser.chat.history(chatId, {
+        limit: 20,
+        ...(reference && {reference}),
+      });
+      console.log("response from the push API", messages);
+      return messages;
+    } catch (error) {
+      console.log("error from the push API", error);
+      return null;
+    }
   };
 
   const fetchChatStatus = async (chatId: string) => {

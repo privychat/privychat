@@ -4,13 +4,16 @@ import {Play} from "lucide-react";
 import Image from "next/image";
 import React, {ReactNode, useEffect, useState} from "react";
 import {useEnsName} from "wagmi";
+import MessageReactionsOverlayContainer from "./message-reactions-overlay-container";
 interface ChatMessageBubbleProps {
-  message: string | ReactNode;
+  message: string;
   self: boolean;
   timestamp: number;
   isGroup?: boolean;
   sender?: string;
   color?: string;
+  messageType?: string;
+  messageReactions?: any[];
 }
 const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
   message,
@@ -19,6 +22,8 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
   isGroup,
   sender,
   color,
+  messageType,
+  messageReactions,
 }) => {
   const {data: ensName} = useEnsName({
     address: sender as `0x${string}`,
@@ -30,7 +35,6 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
   });
   const {pushUser} = usePushUser();
   const [user, setUser] = useState<IUser | undefined>();
-
   useEffect(() => {
     const fetchUserInfo = async () => {
       const user = await pushUser?.info({
@@ -41,11 +45,21 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
     fetchUserInfo();
   }, [sender]);
 
+  const uniqueReactions = messageReactions?.reduce(
+    (uniqueReactions, reaction) => {
+      if (!uniqueReactions.includes(reaction.messageContent)) {
+        uniqueReactions.push(reaction.messageContent);
+      }
+      return uniqueReactions;
+    },
+    []
+  );
+
   return (
     <div
-      className={`my-1 flex flex-row ${
-        self ? "justify-end mr-2" : "justify-start ml-2"
-      }`}
+      className={`relative my-2 ${
+        messageReactions && messageReactions?.length > 0 && "mb-4"
+      } flex flex-row ${self ? "justify-end mr-2" : "justify-start ml-2"}`}
     >
       {isGroup && !self && (
         <Image
@@ -64,6 +78,12 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
           self ? "bg-primary" : "bg-secondary"
         } rounded-lg w-[fit-content] max-w-[50%]`}
       >
+        {messageReactions && messageReactions.length > 0 && (
+          <MessageReactionsOverlayContainer
+            messageReactions={messageReactions!}
+            self={self}
+          />
+        )}
         {isGroup && !self && (
           <p
             className={`font-semibold mb-1`}
@@ -80,9 +100,33 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                 : `${sender?.slice(0, 6)}...${sender?.slice(-4)}`)}
           </p>
         )}
-        <div className="flex flex-row my-1">
-          <p className="font-light leading-6 text-white ">{message}</p>
-          <div className="relative w-44">
+        <div className="flex flex-row my-1 justify-between">
+          {messageType === "Text" && (
+            <div className="font-light leading-6 text-white text-wrap break-all max-w-[90%]">
+              {message}
+            </div>
+          )}
+
+          {messageType === "Image" && (
+            <Image
+              src={JSON.parse(message).content}
+              width={100}
+              height={100}
+              alt="image"
+              className="max-w-[400px] w-[400px] aspect-auto"
+            />
+          )}
+
+          {message.startsWith("https://media.tenor.com") && (
+            <Image
+              src={message}
+              alt="image"
+              width={100}
+              height={100}
+              className="max-w-[400px] w-[400px] aspect-auto rounded-md"
+            />
+          )}
+          <div className="relative w-20">
             <span
               className={`align-right absolute bottom-0 right-0  text-muted-foreground text-sm ${
                 self && "text-white"
@@ -92,7 +136,7 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
             </span>
           </div>
         </div>
-      </div>
+      </div>{" "}
     </div>
   );
 };

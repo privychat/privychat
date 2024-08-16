@@ -50,29 +50,23 @@ export function replaceLinks(message: string): JSX.Element {
   const links = message.match(urlPattern);
 
   return (
-    <>
+    <div className="font-light leading-6 text-white text-md">
       {parts.map((part, index) => (
         <React.Fragment key={index}>
           {part}
           {index < parts.length - 1 && links && (
-            <Button
-              className={`p-0 m-0 text-grey-500 underline`}
-              variant={"link"}
-              asChild
+            <a
+              href={links[index]}
+              className="font-light leading-6 text-white hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <a
-                href={links[index]}
-                className="text-grey-500 underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {links[index]}
-              </a>
-            </Button>
+              {links[index]}
+            </a>
           )}
         </React.Fragment>
       ))}
-    </>
+    </div>
   );
 }
 export function assignColorsToParticipants(
@@ -408,3 +402,14 @@ export const sign = async ({
   });
   return signature;
 };
+
+export function extractBase64Image(message: string): string | null {
+  const base64Regex = /data:image\/[a-zA-Z]*;base64,([^\"]*)/;
+  const match = message.match(base64Regex);
+
+  if (match && match.length > 1) {
+    return match[1];
+  } else {
+    return null;
+  }
+}
