@@ -62,9 +62,16 @@ export default function PushUserProvider({
   >();
 
   const initializeUser = async () => {
+    const decryptedPgpPvtKey = localStorage.getItem("userKey");
+    const userAccount = localStorage.getItem("userAccount");
     const user = await PushAPI.initialize(signer, {
       env: CONSTANTS.ENV.PROD,
+      ...(decryptedPgpPvtKey && {decryptedPGPPrivateKey: decryptedPgpPvtKey}),
+      ...(userAccount && {account: userAccount}),
     });
+
+    localStorage.setItem("userKey", user.decryptedPgpPvtKey!);
+    localStorage.setItem("userAccount", user.account!);
 
     setPushUser(user);
 

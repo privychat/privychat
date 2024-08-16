@@ -11,8 +11,8 @@ import {Bell} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, {useEffect, useState} from "react";
-import {Button} from "./ui/button";
-import {toast} from "./ui/use-toast";
+import {Button} from "./button";
+import {toast} from "./use-toast";
 import {
   useAccount,
   useChainId,
@@ -21,7 +21,7 @@ import {
   useSwitchChain,
 } from "wagmi";
 import {usePushUser} from "@/providers/push-provider";
-import {Input} from "./ui/input";
+import {Input} from "./input";
 import {IUser} from "@pushprotocol/restapi";
 interface FrameRendererProps {
   frameDetails: FrameDetails;
