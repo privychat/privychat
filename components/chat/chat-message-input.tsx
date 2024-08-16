@@ -20,6 +20,7 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({chatId}) => {
       chatId: chatId,
       message: {
         content: inputMessage,
+        type: "Text",
       },
       from: `eip155:${address}`,
       to: [`eip155:${chatId}`],

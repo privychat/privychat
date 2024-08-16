@@ -1,43 +1,63 @@
 "use client";
-import React, {useEffect, useRef, useState} from "react";
-import {CONSTANTS, IFeeds} from "@pushprotocol/restapi";
-import ChatItemList from "@/components/chat/chat-item-list";
 import {usePushUser} from "@/providers/push-provider";
-import UserInfo from "@/components/chat/user-info";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import ChatItemListLoader from "@/components/chat/chat-item-list-loader";
-import {Badge} from "@/components/ui/badge";
-import usePush from "@/app/hooks/usePush";
 import ChatItemInfo from "@/components/chat/chat-item-info";
 import ChatMessagesWindow from "@/components/chat/chat-message-window";
 import ChatMessageInput from "@/components/chat/chat-message-input";
 
-import {useParams, useSearchParams} from "next/navigation";
+import {useSearchParams} from "next/navigation";
 import ChatWindowSidebar from "@/components/chat/chat-window-sidebar";
-
+import {useEffect, useState} from "react";
+import {publicClient} from "@/providers/privy-provider";
+import {normalize} from "viem/ens";
+import FullPageLoader from "@/components/ui/full-page-loader";
+import LoggedOutView from "@/components/ui/logged-out-view";
 interface ChatPageProps {
   params: {
     chatId: string;
   };
 }
 const ChatPage: React.FC<ChatPageProps> = ({params}) => {
+  const [chatId, setChatId] = useState<string>("");
   const {userChats, userChatRequests} = usePushUser();
 
   const searchParams = useSearchParams();
   const isARequest = searchParams.get("request");
+  useEffect(() => {
+    const fetchENSAddress = async () => {
+      try {
+        const ensAddress = await publicClient.getEnsAddress({
+          name: normalize(params.chatId),
+        });
+        if (ensAddress) {
+          setChatId(ensAddress);
+        } else {
+          setChatId(params.chatId);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    if (params.chatId.includes(".eth")) fetchENSAddress();
+    else {
+      setChatId(params.chatId);
+    }
+  }, []);
 
+  if (!chatId) {
+    return <FullPageLoader />;
+  }
   return (
     <div className="flex flex-row gap-2 min-h-screen max-h-screen overflow-y-hidden p-2">
       <ChatWindowSidebar
         userChats={userChats}
         userChatRequests={userChatRequests}
         isARequest={isARequest as string}
-        chatId={params.chatId}
+        chatId={chatId}
       />
       <div className="hidden md:flex flex-col min-h-[96vh] w-full justify-between">
-        <ChatItemInfo chatName={params.chatId} />
-        <ChatMessagesWindow chatId={params.chatId} />
-        {!isARequest && <ChatMessageInput chatId={params.chatId} />}
+        <ChatItemInfo chatName={chatId} />
+        <ChatMessagesWindow chatId={chatId} />
+        {!isARequest && <ChatMessageInput chatId={chatId} />}
       </div>
 
       <div className="md:hidden flex items-center justify-center">
@@ -46,6 +66,7 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
           visit on a desktop browser.
         </h2>
       </div>
+      <LoggedOutView />
     </div>
   );
 };

@@ -1,21 +1,10 @@
 "use client";
-import React, {
-  Suspense as ReactSuspense,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import {CONSTANTS, IFeeds} from "@pushprotocol/restapi";
-import ChatItemList from "@/components/chat/chat-item-list";
+import React, {Suspense as ReactSuspense} from "react";
+
 import {usePushUser} from "@/providers/push-provider";
-import UserInfo from "@/components/chat/user-info";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import ChatItemListLoader from "@/components/chat/chat-item-list-loader";
-import {Badge} from "@/components/ui/badge";
-import usePush from "@/app/hooks/usePush";
 import {useParams} from "next/navigation";
 import ChatWindowSidebar from "@/components/chat/chat-window-sidebar";
-import LoggedOutView from "@/components/logged-out-view";
+import LoggedOutView from "@/components/ui/logged-out-view";
 
 const ChatsPage = () => {
   const {userChats, userChatRequests} = usePushUser();

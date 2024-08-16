@@ -28,7 +28,7 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
   const {data: ensName} = useEnsName({
     address: sender as `0x${string}`,
   });
-  const formattedTime = new Date(timestamp * 1000).toLocaleTimeString([], {
+  const formattedTime = new Date(timestamp).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -42,18 +42,8 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
       });
       setUser(user);
     };
-    fetchUserInfo();
+    if (!self) fetchUserInfo();
   }, [sender]);
-
-  const uniqueReactions = messageReactions?.reduce(
-    (uniqueReactions, reaction) => {
-      if (!uniqueReactions.includes(reaction.messageContent)) {
-        uniqueReactions.push(reaction.messageContent);
-      }
-      return uniqueReactions;
-    },
-    []
-  );
 
   return (
     <div

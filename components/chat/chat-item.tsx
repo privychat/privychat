@@ -28,11 +28,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
   });
 
   return (
-    <Link
-      href={
-        isItARequest ? `/chat/${chatName}?request=true` : `/chat/${chatName}`
-      }
-    >
+    <Link href={isItARequest ? `/${chatName}?request=true` : `/${chatName}`}>
       <div
         className={`flex flex-row justify-evenly relative border my-1  gap-2 w-full p-3 px-2  hover:bg-gray-400/30 rounded-md ${
           active && "bg-gray-400/30"

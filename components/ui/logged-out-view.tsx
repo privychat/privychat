@@ -9,14 +9,14 @@ import {
 } from "@/components/ui/card";
 import {usePrivy} from "@privy-io/react-auth";
 import {useWalletClient} from "wagmi";
-import {Button} from "./ui/button";
+import {Button} from "./button";
 
 const LoggedOutView = () => {
   const {authenticated, ready, login} = usePrivy();
   const {data: signer} = useWalletClient();
   return (
     <>
-      {!authenticated && !signer && (
+      {!signer && ready && !authenticated && (
         <div className="h-screen w-screen fixed inset-0 bg flex items-center justify-center backdrop-filter backdrop-blur-lg ">
           <Card className="flex flex-col items-center justify-center shadow-xl p-8">
             <CardHeader>

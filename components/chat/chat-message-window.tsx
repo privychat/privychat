@@ -10,6 +10,7 @@ import {useRouter, useSearchParams} from "next/navigation";
 import {Badge} from "../ui/badge";
 import ChatLoadingSkeleton from "./chat-loading-skeleton";
 import ChatMessageBubble from "./chat-message-bubble";
+import FullPageLoader from "../ui/full-page-loader";
 
 interface ChatMessagesWindowProps {
   chatId: string;
@@ -143,6 +144,8 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
       }
     };
   }, [firstMessageRef.current]);
+
+  if (!pushUser) return <FullPageLoader />;
   return (
     <div className="flex flex-col flex-grow gap-2 my-2 max-h-[90%] overflow-y-auto">
       {fetchMessagesStatus.fetching && <ChatLoadingSkeleton />}
@@ -261,7 +264,7 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
               className="w-full"
               onClick={() => {
                 acceptChatRequest(chatId);
-                router.push(`/chat/${chatId}`);
+                router.push(`/${chatId}`);
               }}
             >
               Accept
