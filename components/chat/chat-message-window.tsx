@@ -5,8 +5,7 @@ import {usePushUser} from "@/providers/push-provider";
 import React, {useEffect, useRef, useState} from "react";
 import {useAccount} from "wagmi";
 import {Button} from "../ui/button";
-import {Skeleton} from "../ui/skeleton";
-import MessagePreProcessor from "./message-preprocessor";
+
 import {useRouter, useSearchParams} from "next/navigation";
 import {Badge} from "../ui/badge";
 import ChatLoadingSkeleton from "./chat-loading-skeleton";
@@ -36,7 +35,10 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isARequest = searchParams.get("request") === "true";
-
+  const [fetchMessagesStatus, setFetchMessagesStatus] = useState({
+    fetching: false,
+    reference: "",
+  });
   useEffect(() => {
     const fetchStatus = async () => {
       const status = await fetchChatStatus(chatId);
@@ -96,13 +98,23 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       entries.forEach(async (entry) => {
         if (entry.isIntersecting) {
+          if (fetchMessagesStatus.fetching) return;
+          setFetchMessagesStatus({
+            fetching: true,
+            reference: messages[0].cid,
+          });
           console.log("fetching more messages", messages[0].cid);
+
           const response = await fetchAllMessages(chatId, messages[0].cid);
           if (response && response?.length > 0) {
             console.log(response);
             const oldMessages = [...response.slice(1, 20)].reverse();
             setMessages((prev) => [...oldMessages, ...prev]);
           }
+          setFetchMessagesStatus({
+            fetching: false,
+            reference: "",
+          });
         }
       });
     };
@@ -125,6 +137,7 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
   }, [firstMessageRef.current]);
   return (
     <div className="flex flex-col flex-grow gap-2 my-2 max-h-[90%] overflow-y-auto">
+      {fetchMessagesStatus.fetching && <ChatLoadingSkeleton />}
       {!loading &&
         messages?.map((message) => {
           if (message.messageType == "Reaction") return;
