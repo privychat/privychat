@@ -58,6 +58,7 @@ const UserInfo = () => {
                   onClick={() => {
                     logout();
                     window.location.replace("/");
+                    localStorage.clear();
                   }}
                 >
                   Logout

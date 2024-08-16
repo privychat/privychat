@@ -92,7 +92,7 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
         )}
         <div className="flex flex-row my-1 justify-between">
           {messageType === "Text" && (
-            <div className="font-light leading-6 text-white text-wrap break-all max-w-[90%]">
+            <div className="font-light leading-6 text-white whitespace-pre-wrap break-all max-w-[90%]">
               {message}
             </div>
           )}

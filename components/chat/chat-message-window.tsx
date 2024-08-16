@@ -145,7 +145,6 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
     };
   }, [firstMessageRef.current]);
 
-  if (!pushUser) return <FullPageLoader />;
   return (
     <div className="flex flex-col flex-grow gap-2 my-2 max-h-[90%] overflow-y-auto">
       {fetchMessagesStatus.fetching && <ChatLoadingSkeleton />}

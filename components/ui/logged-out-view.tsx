@@ -10,13 +10,14 @@ import {
 import {usePrivy} from "@privy-io/react-auth";
 import {useWalletClient} from "wagmi";
 import {Button} from "./button";
+import {usePushUser} from "@/providers/push-provider";
 
 const LoggedOutView = () => {
   const {authenticated, ready, login} = usePrivy();
-  const {data: signer} = useWalletClient();
+  const {pushUser} = usePushUser();
   return (
     <>
-      {!signer && ready && !authenticated && (
+      {!pushUser && ready && !authenticated && (
         <div className="h-screen w-screen fixed inset-0 bg flex items-center justify-center backdrop-filter backdrop-blur-lg z-20">
           <Card className="flex flex-col items-center justify-center shadow-xl p-8">
             <CardHeader>

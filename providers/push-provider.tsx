@@ -132,7 +132,7 @@ export default function PushUserProvider({
     setUserChatRequests(requests);
   };
   useEffect(() => {
-    if (!signer || pushUser || !authenticated) return;
+    if (pushUser || !authenticated) return;
 
     initializeUser();
 
@@ -140,7 +140,7 @@ export default function PushUserProvider({
       console.log("disconnecting stream");
       pushStream?.current?.disconnect();
     };
-  }, [signer, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!pushUser) return;

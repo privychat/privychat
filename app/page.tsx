@@ -4,14 +4,16 @@ import {usePrivy} from "@privy-io/react-auth";
 import Navbar from "@/components/ui/navbar";
 import {useWalletClient} from "wagmi";
 import ChatsPage from "./chat/page";
+import {usePushUser} from "@/providers/push-provider";
 
 export default function Home() {
   const {login, authenticated, ready} = usePrivy();
   const {data: signer} = useWalletClient();
+  const {pushUser} = usePushUser();
 
   return (
     <main>
-      {ready && !authenticated && (
+      {!pushUser && ready && !authenticated && (
         <div>
           <Navbar />
           <section className="flex flex-col gap-4 justify-center items-center  min-h-[80vh] w-[90vw] m-auto">
@@ -32,7 +34,7 @@ export default function Home() {
         </div>
       )}
 
-      {ready && authenticated && <ChatsPage />}
+      {pushUser && <ChatsPage />}
     </main>
   );
 }

@@ -22,6 +22,8 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
 
   const searchParams = useSearchParams();
   const isARequest = searchParams.get("request");
+  const {pushUser} = usePushUser();
+
   useEffect(() => {
     const fetchENSAddress = async () => {
       try {
@@ -42,7 +44,7 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
       setChatId(params.chatId);
     }
   }, []);
-
+  if (!pushUser) return <FullPageLoader />;
   if (!chatId) {
     return <FullPageLoader />;
   }
