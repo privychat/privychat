@@ -72,7 +72,7 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-      <div className="overflow-y-auto h-full pb-8 pr-1">
+      <div className="overflow-y-auto h-full  pr-1">
         {filteredChats.length > 0 &&
           filteredChats.map((chat) => {
             const isGroupChat = chat.groupInformation !== null;

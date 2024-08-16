@@ -18,14 +18,14 @@ const ChatWindowSidebar = ({
   chatId: string;
 }) => {
   return (
-    <div className="max-w-[400px] min-w-[400px] hidden md:flex flex-col min-h-[96vh]">
-      <div className="h-[4%] mb-4">
+    <div className="max-w-[400px] min-w-[400px] hidden md:flex flex-col min-h-[90vh]">
+      <div className="h-[4%] mb-8">
         <UserInfo />
       </div>
 
       <Tabs
         defaultValue={isARequest ? "requests" : "chats"}
-        className="w-full py-2 h-[86%] max-y-screen"
+        className="w-full py-2 h-[84%] max-y-screen"
       >
         <TabsList className="w-full flex  justify-evenly">
           <TabsTrigger value="chats" className="w-[50%]">

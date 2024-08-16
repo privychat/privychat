@@ -49,14 +49,14 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
     return <FullPageLoader />;
   }
   return (
-    <div className="flex flex-row gap-2 min-h-screen max-h-screen overflow-y-hidden p-2">
+    <div className="flex flex-row gap-2 min-h-screen max-h-screen overflow-y-hidden p-4">
       <ChatWindowSidebar
         userChats={userChats}
         userChatRequests={userChatRequests}
         isARequest={isARequest as string}
         chatId={chatId}
       />
-      <div className="hidden md:flex flex-col min-h-[96vh] w-full justify-between">
+      <div className="hidden md:flex flex-col min-h-[90vh] w-full justify-evenly">
         <ChatItemInfo chatName={chatId} />
         <ChatMessagesWindow chatId={chatId} />
         {!isARequest && <ChatMessageInput chatId={chatId} />}

@@ -114,11 +114,21 @@ export default function PushUserProvider({
 
     if (!chats) return;
     setUserChats(chats);
-    const olderChats = await pushUser.chat.list("CHATS", {
-      limit: 30,
-    });
-    if (olderChats) {
-      setUserChats(olderChats);
+
+    let pagesAvailable = true;
+    let page = 1;
+    while (pagesAvailable) {
+      const olderChats = await pushUser.chat.list("CHATS", {
+        limit: 30,
+        page,
+      });
+      if (!olderChats) {
+        pagesAvailable = false;
+        break;
+      } else {
+        setUserChats((prev) => [...(prev ?? []), ...olderChats]);
+        page++;
+      }
     }
   };
 
