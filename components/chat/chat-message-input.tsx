@@ -15,7 +15,7 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({chatId}) => {
   const {sendMessages} = usePush();
   const {setLatestMessage} = usePushUser();
   const sendMessage = async () => {
-    if (inputMessage.length === 0) return;
+    if (inputMessage.trim().length === 0) return;
 
     setLatestMessage({
       origin: "internal",
