@@ -71,7 +71,9 @@ const MessageReactionsOverlayContainer = ({
         messageReactions.length > 0 && (
           <div
             id="reaction-container"
-            className="absolute z-10 top-[35px] left-1 flex flex-row bg-secondary rounded-md shadow-2xl backdrop-filter backdrop-blur-2xl transition-all duration-300"
+            className={`absolute z-10 top-[35px] ${
+              self ? "right-1" : "left-1"
+            } flex flex-row bg-secondary rounded-md shadow-2xl backdrop-filter backdrop-blur-2xl transition-all duration-300`}
           >
             {" "}
             <div>

@@ -6,6 +6,7 @@ import {createConfig, WagmiProvider} from "@privy-io/wagmi";
 import {mainnet, polygon, base} from "viem/chains";
 import {http} from "wagmi";
 import {useEffect} from "react";
+import {createPublicClient} from "viem";
 
 export const config = createConfig({
   chains: [mainnet, polygon, base],
@@ -15,7 +16,10 @@ export const config = createConfig({
     [base.id]: http(),
   },
 });
-
+export const publicClient = createPublicClient({
+  chain: mainnet,
+  transport: http(),
+});
 export default function PrivyWalletProvider({
   children,
 }: {

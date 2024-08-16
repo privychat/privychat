@@ -87,7 +87,11 @@ export default function PushUserProvider({
 
     // Chat message received:
     stream.on(CONSTANTS.STREAM.CHAT, (message) => {
+      console.log("Chat", message);
       setLatestMessage(message);
+    });
+    stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
+      console.log("Chat Ops", message);
     });
 
     stream.connect();

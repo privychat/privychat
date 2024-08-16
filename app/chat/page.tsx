@@ -15,6 +15,7 @@ import {Badge} from "@/components/ui/badge";
 import usePush from "@/app/hooks/usePush";
 import {useParams} from "next/navigation";
 import ChatWindowSidebar from "@/components/chat/chat-window-sidebar";
+import LoggedOutView from "@/components/logged-out-view";
 
 const ChatsPage = () => {
   const {userChats, userChatRequests} = usePushUser();
@@ -23,7 +24,7 @@ const ChatsPage = () => {
 
   return (
     <ReactSuspense fallback={<div>Loading...</div>}>
-      <div className="flex flex-row gap-2 min-h-screen max-h-screen overflow-y-hidden">
+      <div className="flex flex-row gap-2 min-h-screen max-h-screen overflow-y-hidden p-2">
         <ChatWindowSidebar
           userChats={userChats}
           userChatRequests={userChatRequests}
@@ -38,6 +39,7 @@ const ChatsPage = () => {
             </h2>
           </div>{" "}
         </div>
+        <LoggedOutView />
       </div>
     </ReactSuspense>
   );

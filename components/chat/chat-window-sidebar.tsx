@@ -18,7 +18,7 @@ const ChatWindowSidebar = ({
   chatId: string;
 }) => {
   return (
-    <div className="max-w-[400px] min-w-[400px] hidden md:flex flex-col min-h-[96vh] ">
+    <div className="max-w-[400px] min-w-[400px] hidden md:flex flex-col min-h-[96vh]">
       <div className="h-[4%] mb-4">
         <UserInfo />
       </div>

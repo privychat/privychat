@@ -55,7 +55,8 @@ const ChatItem: React.FC<ChatItemProps> = ({
           </h4>
           <p className="truncate overflow-hidden text-nowrap text-muted-foreground">
             {latestMessage?.from === `eip155:${chatName}` ||
-            latestMessage?.to.includes(`eip155:${chatName}`)
+            (latestMessage?.to.includes(`eip155:${chatName}`) &&
+              latestMessage.message.type !== "Reaction")
               ? latestMessage?.message?.content
               : chatMessage}
           </p>
@@ -64,7 +65,7 @@ const ChatItem: React.FC<ChatItemProps> = ({
         <p className="absolute right-4 top-4 text-xs font-light">
           {latestMessage?.from === `eip155:${chatName}` ||
           latestMessage?.to.includes(`eip155:${chatName}`)
-            ? getTimeFormatted(latestMessage.timestamp)
+            ? getTimeFormatted(Number(latestMessage.timestamp))
             : getTimeFormatted(chatTimeStamp)}
         </p>
       </div>

@@ -58,7 +58,7 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
 
   useEffect(() => {
     filterChatWhileSearching(chats);
-  }, [search, addressForENSNameSearchInput]);
+  }, [search, addressForENSNameSearchInput, chats]);
 
   return (
     <div className="w-full h-full">

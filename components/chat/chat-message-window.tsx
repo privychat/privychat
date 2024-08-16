@@ -71,7 +71,6 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
       !latestMessage.to.includes(`eip155:${chatId}`)
     )
       return;
-
     setMessages((prev) => [
       ...prev,
       {
@@ -79,8 +78,19 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
         messageContent: latestMessage.message.content,
         fromDID: latestMessage.from,
         timestamp: Number(latestMessage.timestamp),
+        messageType: latestMessage.message.type,
+        cid: latestMessage.reference,
+
+        messageObj: {
+          content: latestMessage.message.content,
+          ...(latestMessage.message.type === "Reaction" && {
+            reference: latestMessage.reference,
+          }),
+        },
       },
     ]);
+
+    makeItVisible.current?.scrollIntoView();
   }, [latestMessage]);
 
   useEffect(() => {
@@ -103,11 +113,9 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
             fetching: true,
             reference: messages[0].cid,
           });
-          console.log("fetching more messages", messages[0].cid);
 
           const response = await fetchAllMessages(chatId, messages[0].cid);
           if (response && response?.length > 0) {
-            console.log(response);
             const oldMessages = [...response.slice(1, 20)].reverse();
             setMessages((prev) => [...oldMessages, ...prev]);
           }
@@ -140,13 +148,14 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
       {fetchMessagesStatus.fetching && <ChatLoadingSkeleton />}
       {!loading &&
         messages?.map((message) => {
-          if (message.messageType == "Reaction") return;
+          if (message.messageType == "Reaction") {
+            return;
+          }
 
           const messageReactions = messages.filter(
             (msg) =>
               msg.messageType === "Reaction" &&
-              (msg.messageObj.reference === message.link ||
-                msg.messageObj.reference === message.cid)
+              msg.messageObj.reference === message.cid
           );
 
           const self = message.fromDID.slice(7) === address;
