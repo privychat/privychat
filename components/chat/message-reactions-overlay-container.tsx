@@ -19,19 +19,16 @@ const MessageReactionsOverlayContainer = ({
     },
     []
   );
-  // Add this code inside your component, preferably at the top level
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const container = document.getElementById("reaction-container"); // Add an id to your outermost container
-      const reactDiv = document.getElementById("react-div"); // Add an id to your react div
+      const container = document.getElementById("reaction-container");
+      const reactDiv = document.getElementById("react-div");
       if (
         container &&
         reactDiv &&
         !container.contains(event.target as Node) &&
         !reactDiv.contains(event.target as Node)
       ) {
-        // User clicked outside the container
-        // Perform your desired action here
         setShowReactionsDetails(false);
       }
     };
