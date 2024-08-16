@@ -126,7 +126,8 @@ export default function PushUserProvider({
         pagesAvailable = false;
         break;
       } else {
-        setUserChats((prev) => [...(prev ?? []), ...olderChats]);
+        if (page > 1) setUserChats((prev) => [...(prev ?? []), ...olderChats]);
+        else setUserChats(olderChats);
         page++;
       }
     }

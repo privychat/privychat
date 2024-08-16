@@ -5,6 +5,7 @@ import {Search} from "lucide-react";
 import {Input} from "../ui/input";
 import {useEnsAddress} from "wagmi";
 import {isAddress} from "viem";
+import {usePushUser} from "@/providers/push-provider";
 interface ChatItemListProps {
   chats: IFeeds[];
   selectedChat?: string;
@@ -16,6 +17,7 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
   isInRequestsTab,
 }) => {
   const [search, setSearch] = useState("");
+  const {latestMessage} = usePushUser();
   const [filteredChats, setFilteredChats] = useState<IFeeds[] | any[]>([]);
   const {data: addressForENSNameSearchInput} = useEnsAddress({
     name: search,
@@ -46,6 +48,14 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
       setFilteredChats([
         {
           did: `eip155:${searchTerm}`,
+          chatId: `eip155:${searchTerm}`,
+          msg: {
+            messageContent: "",
+            timestamp: 0,
+          },
+          groupInformation: null,
+          profilePicture:
+            "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg",
         },
       ]);
     } else {
@@ -60,6 +70,35 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
     filterChatWhileSearching(chats);
   }, [search, addressForENSNameSearchInput, chats]);
 
+  // useEffect(() => {
+  //   const handleIncomingNewMessage = () => {
+  //     if (latestMessage) {
+  //       const newFilteredChats = chats.filter(
+  //         (chat) =>
+  //           chat.did === latestMessage.from.slice(7) ||
+  //           chat.chatId === latestMessage.chatId
+  //       );
+  //       if (newFilteredChats.length === 0) {
+  //         setFilteredChats((prev) => [
+  //           {
+  //             did: latestMessage.from,
+  //             chatId: latestMessage.chatId,
+  //             msg: {
+  //               messageContent: latestMessage.message.content,
+  //               timestamp: latestMessage.timestamp,
+  //             },
+  //             groupInformation: null,
+  //             profilePicture:
+  //               "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg",
+  //           },
+  //           ...prev,
+  //         ]);
+  //       }
+  //     }
+  //   };
+
+  //   handleIncomingNewMessage();
+  // }, [latestMessage]);
   return (
     <div className="w-full h-full">
       <div className="relative ml-auto flex-1 md:grow-0 py-2">
@@ -74,13 +113,13 @@ const ChatItemList: React.FC<ChatItemListProps> = ({
       </div>
       <div className="overflow-y-auto h-full  pr-1">
         {filteredChats.length > 0 &&
-          filteredChats.map((chat) => {
+          filteredChats.map((chat, index) => {
             const isGroupChat = chat.groupInformation !== null;
             if (chat.chatId === undefined) return;
 
             return (
               <ChatItem
-                key={chat.chatId}
+                key={index}
                 chatIcon={
                   isGroupChat
                     ? chat.groupInformation?.groupImage
