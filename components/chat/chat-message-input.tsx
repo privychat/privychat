@@ -24,7 +24,12 @@ const ChatMessageInput: React.FC<ChatMessageInputProps> = ({chatId}) => {
         content: inputMessage,
         type: "Text",
       },
-      from: `eip155:${address}`,
+      from: address
+        ? `eip155:${address}`
+        : `eip155:${localStorage.getItem("userAccount")}`,
+      fromDID: address
+        ? `eip155:${address}`
+        : `eip155:${localStorage.getItem("userAccount")}`,
       to: [`eip155:${chatId}`],
       timestamp: new Date().getTime(),
     });

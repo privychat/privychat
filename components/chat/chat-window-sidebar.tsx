@@ -1,10 +1,11 @@
-import React from "react";
+import React, {useEffect} from "react";
 import UserInfo from "./user-info";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../ui/tabs";
 import {Badge} from "../ui/badge";
 import ChatItemList from "./chat-item-list";
 import ChatItemListLoader from "./chat-item-list-loader";
 import {IFeeds} from "@pushprotocol/restapi";
+import {usePushUser} from "@/providers/push-provider";
 
 const ChatWindowSidebar = ({
   userChats,
@@ -17,6 +18,23 @@ const ChatWindowSidebar = ({
   isARequest: string;
   chatId: string;
 }) => {
+  const {latestMessage, setUserChats, pushUser} = usePushUser();
+
+  useEffect(() => {
+    const handleNewChat = async () => {
+      if (latestMessage && latestMessage.origin === "internal" && userChats) {
+        const existingChat = userChats?.find(
+          (chat) => chat.chatId === latestMessage.chatId
+        );
+        if (!existingChat) {
+          const lastChat = await pushUser?.chat.list("CHATS", {limit: 1});
+          console.log("lastChat", lastChat);
+          // if (lastChat) setUserChats([lastChat[0], ...userChats]);
+        }
+      }
+    };
+    handleNewChat();
+  }, [latestMessage]);
   return (
     <div className="max-w-[400px] min-w-[400px] hidden md:flex flex-col min-h-[90vh]">
       <div className="h-[4%] mb-8">

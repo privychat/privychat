@@ -13,7 +13,7 @@ const ChatsPage = () => {
 
   return (
     <ReactSuspense fallback={<div>Loading...</div>}>
-      <div className="flex flex-row gap-2 min-h-screen max-h-screen overflow-y-hidden p-2">
+      <div className="flex flex-row gap-2 min-h-screen max-h-screen overflow-y-hidden p-4">
         <ChatWindowSidebar
           userChats={userChats}
           userChatRequests={userChatRequests}

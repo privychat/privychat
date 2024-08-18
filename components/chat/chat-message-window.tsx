@@ -160,7 +160,9 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
               msg.messageObj.reference === message.cid
           );
 
-          const self = message.fromDID.slice(7) === address;
+          const self =
+            message.fromDID.slice(7) === address ||
+            message.fromDID.slice(7) === localStorage.getItem("userAccount");
           const previousMessageTimestamp =
             messages[messages.indexOf(message) - 1]?.timestamp;
           const currentMessageTimestamp = message.timestamp;

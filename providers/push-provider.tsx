@@ -1,5 +1,4 @@
 "use client";
-import usePush from "@/app/hooks/usePush";
 import {usePrivy} from "@privy-io/react-auth";
 import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
 import {createContext, useContext, useEffect, useRef, useState} from "react";
@@ -158,6 +157,13 @@ export default function PushUserProvider({
     getChats();
     getRequests();
   }, [pushUser]);
+
+  useEffect(() => {
+    if (!pushUser) return;
+    if (latestMessage.origin === "internal") return;
+    getChats();
+    getRequests();
+  }, [latestMessage]);
   return (
     <UserContext.Provider
       value={{
