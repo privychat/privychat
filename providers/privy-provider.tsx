@@ -31,6 +31,11 @@ export default function PrivyWalletProvider({
     <PrivyProvider
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
       config={{
+        embeddedWallets: {
+          createOnLogin: "users-without-wallets",
+          requireUserPasswordOnCreate: false,
+          noPromptOnSignature: true,
+        },
         appearance: {
           theme: "light",
         },

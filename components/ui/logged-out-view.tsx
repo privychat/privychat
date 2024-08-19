@@ -18,7 +18,7 @@ const LoggedOutView = () => {
   return (
     <>
       {!pushUser && ready && !authenticated && (
-        <div className="h-screen w-screen fixed inset-0 bg flex items-center justify-center backdrop-filter backdrop-blur-lg z-20">
+        <div className="h-screen w-screen fixed inset-0 bg flex items-center justify-center backdrop-filter backdrop-blur-lg z-30">
           <Card className="flex flex-col items-center justify-center shadow-xl p-8">
             <CardHeader>
               <CardTitle className="text-lg">

@@ -11,6 +11,7 @@ import {publicClient} from "@/providers/privy-provider";
 import {normalize} from "viem/ens";
 import FullPageLoader from "@/components/ui/full-page-loader";
 import LoggedOutView from "@/components/ui/logged-out-view";
+import {usePrivy} from "@privy-io/react-auth";
 interface ChatPageProps {
   params: {
     chatId: string;
@@ -19,7 +20,7 @@ interface ChatPageProps {
 const ChatPage: React.FC<ChatPageProps> = ({params}) => {
   const [chatId, setChatId] = useState<string>("");
   const {userChats, userChatRequests} = usePushUser();
-
+  const {ready, authenticated} = usePrivy();
   const searchParams = useSearchParams();
   const isARequest = searchParams.get("request");
   const {pushUser} = usePushUser();
@@ -44,7 +45,11 @@ const ChatPage: React.FC<ChatPageProps> = ({params}) => {
       setChatId(params.chatId);
     }
   }, []);
-  if (!pushUser) return <FullPageLoader />;
+  if (!pushUser) {
+    if (localStorage.getItem("userKey") === null && ready && !authenticated) {
+      return <LoggedOutView />;
+    } else return <FullPageLoader />;
+  }
   if (!chatId) {
     return <FullPageLoader />;
   }

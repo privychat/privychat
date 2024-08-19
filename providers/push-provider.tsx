@@ -1,5 +1,5 @@
 "use client";
-import {usePrivy} from "@privy-io/react-auth";
+import {usePrivy, useWallets} from "@privy-io/react-auth";
 import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
 import {createContext, useContext, useEffect, useRef, useState} from "react";
 import {useAccount, useWalletClient} from "wagmi";
@@ -50,7 +50,7 @@ export default function PushUserProvider({
   children: React.ReactNode;
 }) {
   const {data: signer} = useWalletClient();
-  const {authenticated, user} = usePrivy();
+  const {authenticated, user: privyUser} = usePrivy();
   const [pushUser, setPushUser] = useState<PushAPI | undefined>();
   const pushStream = useRef<any>(undefined);
   const [latestMessage, setLatestMessage] = useState<any>();
@@ -63,6 +63,7 @@ export default function PushUserProvider({
   const initializeUser = async () => {
     const decryptedPgpPvtKey = localStorage.getItem("userKey");
     const userAccount = localStorage.getItem("userAccount");
+    if (!decryptedPgpPvtKey && !userAccount && !signer) return;
     const user = await PushAPI.initialize(signer, {
       env: CONSTANTS.ENV.PROD,
       ...(decryptedPgpPvtKey && {decryptedPGPPrivateKey: decryptedPgpPvtKey}),
@@ -150,7 +151,7 @@ export default function PushUserProvider({
       console.log("disconnecting stream");
       pushStream?.current?.disconnect();
     };
-  }, [user]);
+  }, [privyUser, signer]);
 
   useEffect(() => {
     if (!pushUser) return;
