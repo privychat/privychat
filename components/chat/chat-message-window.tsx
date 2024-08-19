@@ -57,7 +57,7 @@ const ChatMessagesWindow: React.FC<ChatMessagesWindowProps> = ({chatId}) => {
 
       if (!messages) return;
       setMessages(messages.reverse());
-      console.log(messages);
+
       setLoading(false);
     };
     fetchMessages();

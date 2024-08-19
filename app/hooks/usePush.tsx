@@ -43,7 +43,6 @@ const usePush = () => {
         limit: 20,
         ...(reference && {reference}),
       });
-      console.log("response from the push API", messages);
       return messages;
     } catch (error) {
       console.log("error from the push API", error);
