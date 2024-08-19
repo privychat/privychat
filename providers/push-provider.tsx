@@ -59,11 +59,14 @@ export default function PushUserProvider({
   const [userChatRequests, setUserChatRequests] = useState<
     IFeeds[] | undefined
   >();
+  const {wallets} = useWallets();
 
   const initializeUser = async () => {
     const decryptedPgpPvtKey = localStorage.getItem("userKey");
     const userAccount = localStorage.getItem("userAccount");
     if (!decryptedPgpPvtKey && !userAccount && !signer) return;
+
+    if (wallets[0]?.address !== signer?.account?.address) return;
     const user = await PushAPI.initialize(signer, {
       env: CONSTANTS.ENV.PROD,
       ...(decryptedPgpPvtKey && {decryptedPGPPrivateKey: decryptedPgpPvtKey}),
