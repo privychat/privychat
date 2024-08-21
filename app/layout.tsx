@@ -6,6 +6,7 @@ import {cn} from "@/lib/utils";
 import {ThemeProvider} from "@/providers/theme-provider";
 import PushUserProvider from "@/providers/push-provider";
 import {Toaster} from "@/components/ui/toaster";
+import GoogleAnalytics from "@/components/google-analytics";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
 
@@ -21,6 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <GoogleAnalytics />
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
