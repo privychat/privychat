@@ -1,190 +1,179 @@
 "use client";
-import {usePrivy, useWallets} from "@privy-io/react-auth";
-import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
-import {createContext, useContext, useEffect, useRef, useState} from "react";
-import {useAccount, useWalletClient} from "wagmi";
 
-interface UserContextType {
-  pushUser: PushAPI | undefined;
-  setPushUser: (user: PushAPI | undefined) => void;
-  userInfo: IUser | undefined;
-  setUserInfo: (userInfo: IUser | undefined) => void;
-  userChatRequests: IFeeds[] | undefined;
-  setUserChatRequests: (requests: IFeeds[] | undefined) => void;
-  userChats: IFeeds[] | undefined;
-  setUserChats: (chats: IFeeds[] | undefined) => void;
+import {useToast} from "@/hooks/use-toast";
+import usePush from "@/hooks/use-push";
+import {getUserKeys, saveUserKeys} from "@/lib/utils";
+import {IAppContext, IChat, IMessage} from "@/types";
+import {usePrivy} from "@privy-io/react-auth";
+import {CONSTANTS, IFeeds, IUser, PushAPI, user} from "@pushprotocol/restapi";
+import {createContext, useEffect, useRef, useState} from "react";
+import {useWalletClient} from "wagmi";
 
-  pushStream: any;
-  latestMessage: any;
-  setLatestMessage: (message: any) => void;
-}
+export const AppContext = createContext<IAppContext>({} as IAppContext);
 
-const defaultContextValue: UserContextType = {
-  pushUser: undefined,
-  setPushUser: () => {},
-  userInfo: undefined,
-  setUserInfo: () => {},
-  userChatRequests: undefined,
-  setUserChatRequests: () => {},
-  userChats: undefined,
-  setUserChats: () => {},
-
-  pushStream: undefined,
-  latestMessage: undefined,
-  setLatestMessage: () => {},
-};
-
-export const UserContext = createContext<UserContextType>(defaultContextValue);
-
-export const usePushUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("usePushUser must be used within a PushUserProvider");
-  }
-  return context;
-};
-
-export default function PushUserProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppProvider({children}: {children: React.ReactNode}) {
+  const [pushUser, setPushUser] = useState<PushAPI | null>(null);
+  const [userInfo, setUserInfo] = useState<IUser | null>(null);
+  const [account, setAccount] = useState<string | null>(null);
+  const [feeds, setFeeds] = useState<IFeeds[] | null>(null);
+  const [requests, setRequests] = useState<IFeeds[] | null>(null);
+  const [feedContent, setFeedContent] = useState<{
+    [key: string]: IMessage[] | null;
+  }>({});
+  const [streamMessage, setStreamMessage] = useState<any | null>(null);
+  const pushStream = useRef<any | null>(null);
+  const [isUserAuthenticated, setIsUserAuthenticated] =
+    useState<boolean>(false);
+  const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
+  const [chatSearch, setChatSearch] = useState<string>("");
+  const [activeChatTab, setActiveChatTab] = useState<
+    "all" | "requests" | "pinned" | "archived"
+  >("all");
+  // signer
   const {data: signer} = useWalletClient();
-  const {authenticated, user: privyUser} = usePrivy();
-  const [pushUser, setPushUser] = useState<PushAPI | undefined>();
-  const pushStream = useRef<any>(undefined);
-  const [latestMessage, setLatestMessage] = useState<any>();
-  const [userInfo, setUserInfo] = useState<IUser | undefined>();
-  const [userChats, setUserChats] = useState<IFeeds[] | undefined>();
-  const [userChatRequests, setUserChatRequests] = useState<
-    IFeeds[] | undefined
-  >();
-  const {wallets} = useWallets();
+  // privy user
+  const {user: privyUser, ready, authenticated} = usePrivy();
 
-  const initializeUser = async () => {
-    const decryptedPgpPvtKey = localStorage.getItem("userKey");
-    const userAccount = localStorage.getItem("userAccount");
-    if (!decryptedPgpPvtKey && !userAccount && !signer) return;
+  const initializePushUser = async () => {
+    try {
+      const {userAccount, userKey} = getUserKeys();
+      if (!userAccount && !userKey) return;
+      const user = await PushAPI.initialize(signer, {
+        env: CONSTANTS.ENV.PROD,
+        ...(userKey && {decryptedPGPPrivateKey: userKey}),
+        ...(userAccount && {account: userAccount}),
+      });
 
-    if (wallets[0]?.address !== signer?.account?.address) return;
-    const user = await PushAPI.initialize(signer, {
-      env: CONSTANTS.ENV.PROD,
-      ...(decryptedPgpPvtKey && {decryptedPGPPrivateKey: decryptedPgpPvtKey}),
-      ...(userAccount && {account: userAccount}),
-    });
+      if (!user.decryptedPgpPvtKey) {
+        return;
+      }
+      saveUserKeys(user.decryptedPgpPvtKey!, user.account);
+      setPushUser(user);
+      setAccount(user.account);
 
-    localStorage.setItem("userKey", user.decryptedPgpPvtKey!);
-    localStorage.setItem("userAccount", user.account!);
+      if (pushStream.current && pushStream.current.disconnected === false) {
+        return;
+      }
 
-    setPushUser(user);
+      const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
+      stream.on(CONSTANTS.STREAM.CONNECT, async (a) => {
+        console.log("Stream Connected");
+      });
+      stream.on(CONSTANTS.STREAM.DISCONNECT, async (a) => {
+        console.log("Stream Disconnected");
+      });
 
-    const [userInfo, userChats, userChatRequests] = await Promise.all([
-      user.info(),
-      getChats(),
-      getRequests(),
-    ]);
+      // Chat message received:
+      stream.on(CONSTANTS.STREAM.CHAT, (message) => {
+        console.log("Chat", message);
+        setStreamMessage(message);
+      });
+      stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
+        console.log("Chat Ops", message);
+      });
 
-    setUserInfo(userInfo);
-    if (pushStream.current && pushStream.current.disconnected === false) return;
+      stream.connect();
 
-    const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
-    stream.on(CONSTANTS.STREAM.CONNECT, async (a) => {
-      console.log("Stream Connected");
-    });
-    stream.on(CONSTANTS.STREAM.DISCONNECT, async (a) => {
-      console.log("Stream Disconnected");
-    });
-
-    // Chat message received:
-    stream.on(CONSTANTS.STREAM.CHAT, (message) => {
-      console.log("Chat", message);
-      setLatestMessage(message);
-    });
-    stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
-      console.log("Chat Ops", message);
-    });
-
-    stream.connect();
-
-    pushStream.current = stream;
+      pushStream.current = stream;
+    } catch (error) {
+      console.error(error);
+    }
   };
-
-  const getChats = async () => {
-    if (!pushUser) return;
-    const chats = await pushUser.chat.list("CHATS", {
+  const getUserChats = async () => {
+    const startTime = Date.now();
+    const chats = await pushUser?.chat.list("CHATS", {
       limit: 10,
     });
+    console.log("Time taken to fetch chats", Date.now() - startTime);
 
-    if (!chats) return;
-    setUserChats(chats);
-
-    let pagesAvailable = true;
-    let page = 1;
-    while (pagesAvailable) {
-      const olderChats = await pushUser.chat.list("CHATS", {
-        limit: 30,
-        page,
-      });
-      if (!olderChats) {
-        pagesAvailable = false;
-        break;
-      } else {
-        if (page > 1) setUserChats((prev) => [...(prev ?? []), ...olderChats]);
-        else setUserChats(olderChats);
-        page++;
-      }
+    if (chats) {
+      setFeeds(chats);
+      await getMessagesForLatestChats(chats);
     }
   };
 
-  const getRequests = async () => {
-    if (!pushUser) return;
-    const requests = await pushUser.chat.list("REQUESTS", {
+  const getUserRequests = async () => {
+    const requests = await pushUser?.chat.list("REQUESTS", {
       limit: 10,
     });
-
-    if (!requests) return;
-    setUserChatRequests(requests);
+    if (requests) {
+      setRequests(requests);
+    }
   };
+
+  const getUserDetails = async () => {
+    const user = await pushUser?.info();
+    if (user) {
+      setUserInfo(user);
+    }
+  };
+
+  const getMessagesForLatestChats = async (feeds: IFeeds[]) => {
+    const historyPromises = feeds.map(async (feed) => {
+      const history = await pushUser?.chat.history(feed.chatId!, {
+        limit: 15,
+      });
+
+      if (history) {
+        setFeedContent((prev) => ({...prev, [feed.chatId!]: history}));
+      }
+    });
+
+    await Promise.all(historyPromises);
+  };
+
   useEffect(() => {
-    if (pushUser || !authenticated) return;
-
-    initializeUser();
-
-    return () => {
-      console.log("disconnecting stream");
-      pushStream?.current?.disconnect();
-    };
-  }, [privyUser, signer]);
-
-  useEffect(() => {
-    if (!pushUser) return;
-    getChats();
-    getRequests();
+    if (pushUser) {
+      Promise.all([getUserChats(), getUserRequests(), getUserDetails()]);
+    }
   }, [pushUser]);
-
   useEffect(() => {
-    if (!pushUser) return;
-    if (latestMessage.origin === "internal") return;
-    getChats();
-    getRequests();
-  }, [latestMessage]);
+    const localUser = getUserKeys();
+
+    if (
+      (localUser.userAccount && localUser.userKey) ||
+      (authenticated && signer)
+    ) {
+      setIsUserAuthenticated(true);
+    }
+  }, [signer, authenticated, ready, privyUser]);
+  useEffect(() => {
+    initializePushUser();
+  }, []);
   return (
-    <UserContext.Provider
+    <AppContext.Provider
       value={{
+        isUserAuthenticated,
+        setIsUserAuthenticated,
+        account,
+        setAccount,
         pushUser,
         setPushUser,
         userInfo,
         setUserInfo,
-        userChatRequests,
-        setUserChatRequests,
-        userChats,
-        setUserChats,
+        chat: {
+          feeds,
+          setFeeds,
+          requests,
+          setRequests,
+          feedContent,
+          setFeedContent,
+        },
+        setFeeds,
+        setRequests,
         pushStream,
-        latestMessage,
-        setLatestMessage,
+        setPushStream: pushStream.current,
+        streamMessage,
+        setStreamMessage,
+        activeChat,
+        setActiveChat,
+        chatSearch,
+        setChatSearch,
+        activeChatTab,
+        setActiveChatTab,
       }}
     >
       {children}
-    </UserContext.Provider>
+    </AppContext.Provider>
   );
 }

@@ -3,17 +3,16 @@
 import {PrivyProvider} from "@privy-io/react-auth";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {createConfig, WagmiProvider} from "@privy-io/wagmi";
-import {mainnet, polygon, base} from "viem/chains";
+import {mainnet} from "viem/chains";
 import {http} from "wagmi";
-import {useEffect} from "react";
+
 import {createPublicClient} from "viem";
+import {useTheme} from "next-themes";
 
 export const config = createConfig({
-  chains: [mainnet, polygon, base],
+  chains: [mainnet],
   transports: {
     [mainnet.id]: http(),
-    [polygon.id]: http(),
-    [base.id]: http(),
   },
 });
 export const publicClient = createPublicClient({
@@ -26,7 +25,7 @@ export default function PrivyWalletProvider({
   children: React.ReactNode;
 }) {
   const queryClient = new QueryClient();
-
+  const {theme} = useTheme();
   return (
     <PrivyProvider
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
@@ -37,7 +36,7 @@ export default function PrivyWalletProvider({
           noPromptOnSignature: true,
         },
         appearance: {
-          theme: "light",
+          theme: theme === "dark" ? "dark" : "light",
         },
         loginMethods: ["email", "wallet"],
       }}

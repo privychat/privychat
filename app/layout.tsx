@@ -1,18 +1,24 @@
 import type {Metadata} from "next";
 import {Inter} from "next/font/google";
 import "./globals.css";
-import PrivyWalletProvider from "@/providers/privy-provider";
-import {cn} from "@/lib/utils";
 import {ThemeProvider} from "@/providers/theme-provider";
-import PushUserProvider from "@/providers/push-provider";
+import PrivyWalletProvider from "@/providers/privy-wallet-provider";
+import AppProvider from "@/providers/push-provider";
 import {Toaster} from "@/components/ui/toaster";
-import GoogleAnalytics from "@/components/google-analytics";
 
-const inter = Inter({subsets: ["latin"], variable: "--font-sans"});
+const inter = Inter({subsets: ["latin"]});
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "PrivyChat",
-  description: "Native web3 chat",
+  description: "text any wallet address with PrivyChat",
+
+  generator: "Next.js",
+  manifest: "/manifest.json",
+
+  icons: [
+    {rel: "apple-touch-icon", url: "privychat.png"},
+    {rel: "icon", url: "/privychat.png"},
+  ],
 };
 
 export default function RootLayout({
@@ -22,21 +28,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <GoogleAnalytics />
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          inter.variable
-        )}
-      >
+      <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
           disableTransitionOnChange
         >
           <PrivyWalletProvider>
-            <PushUserProvider>{children}</PushUserProvider>
+            <AppProvider>{children}</AppProvider>
           </PrivyWalletProvider>
           <Toaster />
         </ThemeProvider>

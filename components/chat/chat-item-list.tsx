@@ -1,116 +1,73 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Badge} from "../ui/badge";
+import ChatBadge from "../ui/chat-badge";
+import {useAppContext} from "@/hooks/use-app-context";
+import {ChatType} from "@/constants";
 import ChatItem from "./chat-item";
-import {IFeeds} from "@pushprotocol/restapi";
-import {Search} from "lucide-react";
-import {Input} from "../ui/input";
-import {useEnsAddress} from "wagmi";
-import {isAddress} from "viem";
-import {usePushUser} from "@/providers/push-provider";
-interface ChatItemListProps {
-  chats: IFeeds[];
-  selectedChat?: string;
-  isInRequestsTab?: boolean;
-}
-const ChatItemList: React.FC<ChatItemListProps> = ({
-  chats,
-  selectedChat,
-  isInRequestsTab,
-}) => {
-  const [search, setSearch] = useState("");
+import ChatSearch from "./chat-search";
+import {Separator} from "@/components/ui/separator";
 
-  const [filteredChats, setFilteredChats] = useState<IFeeds[] | any[]>([]);
-  const {data: addressForENSNameSearchInput} = useEnsAddress({
-    name: search,
-    chainId: 1,
-  });
+const ChatItemList = () => {
+  const [fetchingMessagesLoader, setFetchingMessagesLoader] = useState(false);
+  const {chat, setFeeds, setRequests, activeChatTab} = useAppContext();
 
-  const filterChatWhileSearching = (chats: IFeeds[]) => {
-    if (search.length === 0) {
-      setFilteredChats(chats);
-      return;
-    }
+  const handleScroll = () => {
+    const chatsDiv = document.getElementById("chats");
+    if (!chatsDiv) return;
 
-    const searchTerm = search.includes(".eth")
-      ? addressForENSNameSearchInput ?? search
-      : search;
-    const newFilteredChats = chats.filter(
-      (chat) =>
-        (chat.did && chat.did.slice(7).includes(searchTerm)) ||
-        (chat.chatId && chat.chatId.includes(searchTerm)) ||
-        (chat.groupInformation &&
-          chat.groupInformation.groupName
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()))
-    );
+    const {scrollTop, clientHeight, scrollHeight} = chatsDiv;
 
-    // if the search is a valid address and its not in the chats list, add it to the filtered chats
-    if (isAddress(searchTerm) && newFilteredChats.length === 0) {
-      setFilteredChats([
-        {
-          did: `eip155:${searchTerm}`,
-          chatId: `eip155:${searchTerm}`,
-          msg: {
-            messageContent: "",
-            timestamp: 0,
-          },
-          groupInformation: null,
-          profilePicture:
-            "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg",
-        },
-      ]);
-    } else {
-      // Only update state if there's an actual change
-      if (JSON.stringify(newFilteredChats) !== JSON.stringify(filteredChats)) {
-        setFilteredChats(newFilteredChats);
-      }
+    if (scrollTop + clientHeight >= scrollHeight) {
+      setFetchingMessagesLoader(true);
     }
   };
 
   useEffect(() => {
-    filterChatWhileSearching(chats);
-  }, [search, addressForENSNameSearchInput, chats]);
+    const chatsDiv = document.getElementById("chats");
+    if (!chatsDiv) return;
 
+    chatsDiv.addEventListener("scroll", handleScroll);
+
+    return () => {
+      chatsDiv.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
   return (
-    <div className="w-full h-full">
-      <div className="relative ml-auto flex-1 md:grow-0 py-2">
-        <Search className="absolute left-2.5 top-5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search...vitalik.eth"
-          className="w-full rounded-lg bg-background pl-8 py-5"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+    <div className="rounded-md h-20  flex flex-col flex-1 gap-2 py-1 bg-black border-[1px] border-gray-500 border-opacity-50">
+      <ChatSearch />
+      <div className="grid grid-cols-2 px-2  xl:flex xl:flex-row gap-2">
+        <ChatBadge text="all" />
+        <ChatBadge text="requests" />
+        <ChatBadge text="pinned" />
+        <ChatBadge text="archived" />
       </div>
-      <div className="overflow-y-auto h-full  pr-1">
-        {filteredChats.length > 0 &&
-          filteredChats.map((chat, index) => {
-            const isGroupChat = chat.groupInformation !== null;
-            if (chat.chatId === undefined) return;
+      <Separator className="w-[96%] m-auto" />
+      <section className="w-full h-full flex flex-col overflow-y-auto">
+        <div
+          className={`flex flex-col flex-1 h-full overflow-y-auto`}
+          id="chats"
+        >
+          {chat &&
+            activeChatTab === ChatType.ALL &&
+            chat.feeds &&
+            chat.feeds.map((chat, index) => (
+              <ChatItem key={index} chat={chat} />
+            ))}
 
-            return (
-              <ChatItem
-                key={index}
-                chatIcon={
-                  isGroupChat
-                    ? chat.groupInformation?.groupImage
-                    : chat.profilePicture ?? ""
-                }
-                chatName={
-                  isGroupChat ? (chat.chatId as string) : chat.did.slice(7)
-                }
-                chatMessage={chat.msg.messageContent}
-                chatTimeStamp={chat.msg.timestamp}
-                active={
-                  selectedChat ===
-                  (isGroupChat ? chat.chatId : chat.did.slice(7))
-                }
-                isItARequest={isInRequestsTab ?? false}
-                groupName={chat.groupInformation?.groupName}
-              />
-            );
-          })}
-      </div>
+          {chat &&
+            activeChatTab === ChatType.REQUESTS &&
+            chat.requests &&
+            chat.requests.map((chat, index) => (
+              <ChatItem key={index} chat={chat} />
+            ))}
+          {fetchingMessagesLoader && (
+            <div className="flex justify-center items-center">
+              Fetching more messages...
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

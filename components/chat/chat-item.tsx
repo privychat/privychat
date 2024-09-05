@@ -1,71 +1,66 @@
-import React from "react";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {getTimeFormatted} from "@/lib/utils";
-import {useEnsName} from "wagmi";
-import Link from "next/link";
-import {usePushUser} from "@/providers/push-provider";
-interface ChatItemProps {
-  chatName: string;
-  chatMessage: string;
-  chatTimeStamp?: number;
-  chatIcon?: string | null;
-  active?: boolean;
-  isItARequest?: boolean;
-  groupName?: string;
-}
-const ChatItem: React.FC<ChatItemProps> = ({
-  chatMessage,
-  chatTimeStamp = Date.now(),
-  chatName,
-  chatIcon,
-  active,
-  isItARequest,
-  groupName,
-}) => {
-  const {latestMessage} = usePushUser();
-  const {data: ensName} = useEnsName({
-    address: chatName as `0x${string}`,
-  });
+import {DEFAULT_PFP} from "@/constants";
+import usePush from "@/hooks/use-push";
+import {convertUnixTimestamp, trimAddress} from "@/lib/utils";
+import {IFeeds} from "@pushprotocol/restapi";
+import Image from "next/image";
+import React, {useEffect, useState} from "react";
 
+const ChatItem = ({chat}: {chat: IFeeds}) => {
+  const [isAGroup, setIsAGroup] = useState<boolean>(
+    chat.groupInformation?.chatId ? true : false
+  );
+  const {resolveDomain} = usePush();
+  const [chatName, setChatName] = useState<string>(
+    chat.did
+      ? trimAddress(chat.did.slice(7))
+      : isAGroup
+      ? (chat.groupInformation?.groupName as string)
+      : ""
+  );
+
+  useEffect(() => {
+    const fetchChatName = async () => {
+      if (!chat.did || chat.groupInformation?.chatId) {
+        return;
+      }
+      const name = await resolveDomain(chat.did.slice(7));
+      if ("error" in name) {
+        return;
+      }
+      if (name.name.length > 0) {
+        setChatName(name.name[0]);
+      }
+    };
+    fetchChatName();
+  }, []);
   return (
-    <Link href={isItARequest ? `/${chatName}?request=true` : `/${chatName}`}>
-      <div
-        className={`flex flex-row justify-evenly relative border my-1  gap-2 w-full p-3 px-2  hover:bg-gray-400/30 rounded-md ${
-          active && "bg-gray-400/30"
-        }`}
-      >
-        <Avatar className="w-[50px] h-[50px]">
-          <AvatarImage src={chatIcon ?? ""} />
-          <AvatarFallback>
-            {" "}
-            {groupName ??
-              ensName ??
-              `${chatName.slice(0, 6)}...${chatName.slice(-4)}`}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col flex-grow w-[60%]">
-          <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-            {groupName ??
-              ensName ??
-              `${chatName.slice(0, 6)}...${chatName.slice(-4)}`}
-          </h4>
-          <p className="truncate overflow-hidden text-nowrap text-muted-foreground">
-            {latestMessage?.from === `eip155:${chatName}` ||
-            (latestMessage?.to.includes(`eip155:${chatName}`) &&
-              latestMessage.message.type !== "Reaction")
-              ? latestMessage?.message?.content
-              : chatMessage}
-          </p>
+    <div className="relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 hover:border-[1px] border-gray-800">
+      <Image
+        src={
+          (isAGroup
+            ? chat.groupInformation?.groupImage
+            : chat.profilePicture) || DEFAULT_PFP
+        }
+        alt="avatar"
+        width={60}
+        height={60}
+        className="rounded-full w-14 h-14"
+      />
+      <div className="flex flex-col gap-2 w-full overflow-x-hidden">
+        <div className="flex flex-row justify-between">
+          <span className="text-md font-medium leading-none">{chatName}</span>
+          <span className="text-sm text-muted-foreground">
+            {convertUnixTimestamp(chat.msg.timestamp!)}
+          </span>
         </div>
-
-        <p className="absolute right-4 top-4 text-xs font-light">
-          {latestMessage?.from === `eip155:${chatName}` ||
-          latestMessage?.to.includes(`eip155:${chatName}`)
-            ? getTimeFormatted(Number(latestMessage.timestamp))
-            : getTimeFormatted(chatTimeStamp)}
-        </p>
+        <span className="w-[90%] text-nowrap text-ellipsis overflow-x-hidden text-sm text-muted-foreground">
+          {chat.msg.messageContent}
+        </span>
       </div>
-    </Link>
+      <div className="absolute flex justify-center items-center bottom-2 right-4 bg-[#24c55b] w-5 h-5 rounded-full">
+        <p className="font-semibold text-muted text-sm">1</p>
+      </div>
+    </div>
   );
 };
 
