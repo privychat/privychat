@@ -9,7 +9,7 @@ import usePush from "@/hooks/use-push";
 import {IFeeds} from "@pushprotocol/restapi";
 import ChatItemLoaderSkeleton from "./chat-item-loader-skeleton";
 
-const ChatItemList = () => {
+const ChatSidebar = () => {
   const [isUserInLastPage, setIsUserInLastPage] = useState({
     feeds: false,
     requests: false,
@@ -118,55 +118,84 @@ const ChatItemList = () => {
           className={`flex flex-col flex-1 h-full overflow-y-auto`}
           id="chats"
         >
-          {!chat?.feeds && (
-            <>
-              {Array.from({length: 10}).map((_, index) => (
-                <ChatItemLoaderSkeleton key={index} />
-              ))}
-            </>
-          )}
-          {!chat?.requests && (
-            <>
-              {Array.from({length: 10}).map((_, index) => (
-                <ChatItemLoaderSkeleton key={index} />
-              ))}
-            </>
-          )}
-          {chat &&
-            activeChatTab === ChatType.ALL &&
-            chat.feeds &&
-            chat.feeds.map((chat, index) => (
-              <ChatItem key={index} chat={chat} />
-            ))}
-          {chat &&
-            activeChatTab === ChatType.REQUESTS &&
-            chat.requests &&
-            chat.requests.map((chat, index) => (
-              <ChatItem key={index} chat={chat} />
-            ))}
+          <FeedsTab />
+          <RequestTab />
+          <GroupsTab />
 
-          {chat &&
-            activeChatTab === ChatType.GROUPS &&
-            chat.feeds &&
-            chat.feeds
-              .filter((chat) => chat.groupInformation?.chatId)
-              .map((chat, index) => <ChatItem key={index} chat={chat} />)}
-
-          {fetchingMessagesLoader && (
-            <div className="flex flex-row justify-center items-center gap-2 py-4">
-              <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>
-              <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
-              <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
-              <p className="text-muted-foreground">Fetching more chats</p>
-              <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
-              <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
-              <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>
-            </div>
-          )}
+          {fetchingMessagesLoader && <FetchingMoreMessagesLoader />}
         </div>
       </section>
     </div>
   );
 };
 
-export default ChatItemList;
+const FeedsTab = () => {
+  const {chat, activeChatTab} = useAppContext();
+  return (
+    <>
+      {!chat?.feeds && activeChatTab === ChatType.ALL && (
+        <>
+          {Array.from({length: 10}).map((_, index) => (
+            <ChatItemLoaderSkeleton key={index} />
+          ))}
+        </>
+      )}{" "}
+      {chat &&
+        activeChatTab === ChatType.ALL &&
+        chat.feeds &&
+        chat.feeds.map((chat, index) => <ChatItem key={index} chat={chat} />)}
+    </>
+  );
+};
+
+const RequestTab = () => {
+  const {chat, activeChatTab} = useAppContext();
+
+  return (
+    <>
+      {!chat?.requests && activeChatTab === ChatType.REQUESTS && (
+        <>
+          {Array.from({length: 10}).map((_, index) => (
+            <ChatItemLoaderSkeleton key={index} />
+          ))}
+        </>
+      )}
+      {chat &&
+        activeChatTab === ChatType.REQUESTS &&
+        chat.requests &&
+        chat.requests.map((chat, index) => (
+          <ChatItem key={index} chat={chat} />
+        ))}
+    </>
+  );
+};
+const GroupsTab = () => {
+  const {chat, activeChatTab} = useAppContext();
+
+  return (
+    <>
+      {chat &&
+        activeChatTab === ChatType.GROUPS &&
+        chat.feeds &&
+        chat.feeds
+          .filter((chat) => chat.groupInformation?.chatId)
+          .map((chat, index) => <ChatItem key={index} chat={chat} />)}
+    </>
+  );
+};
+
+const FetchingMoreMessagesLoader = () => {
+  return (
+    <div className="flex flex-row justify-center items-center gap-2 py-4">
+      <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>
+      <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
+      <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
+      <p className="text-muted-foreground">Fetching more chats</p>
+      <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
+      <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
+      <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>
+    </div>
+  );
+};
+
+export default ChatSidebar;

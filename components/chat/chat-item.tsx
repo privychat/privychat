@@ -1,4 +1,5 @@
 import {DEFAULT_PFP} from "@/constants";
+import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {convertUnixTimestamp, trimAddress} from "@/lib/utils";
 import {IFeeds} from "@pushprotocol/restapi";
@@ -6,10 +7,12 @@ import Image from "next/image";
 import React, {useEffect, useState} from "react";
 
 const ChatItem = ({chat}: {chat: IFeeds}) => {
+  const {resolveDomain} = usePush();
+  const {setActiveChat} = useAppContext();
   const [isAGroup, setIsAGroup] = useState<boolean>(
     chat.groupInformation?.chatId ? true : false
   );
-  const {resolveDomain} = usePush();
+
   const [chatName, setChatName] = useState<string>(
     chat.did
       ? trimAddress(chat.did.slice(7))
@@ -19,6 +22,9 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
   );
   const timestamp = convertUnixTimestamp(chat.msg.timestamp!);
 
+  const handleClick = () => {
+    setActiveChat(chat);
+  };
   useEffect(() => {
     const fetchChatName = async () => {
       if (!chat.did || chat.groupInformation?.chatId) {
@@ -35,7 +41,10 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
     fetchChatName();
   }, []);
   return (
-    <div className="relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 hover:border-[1px] border-gray-800">
+    <div
+      className="relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 border-[1px] border-gray-800/50 hover:border-gray-800"
+      onClick={handleClick}
+    >
       <Image
         src={
           (isAGroup
@@ -43,9 +52,9 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
             : chat.profilePicture) || DEFAULT_PFP
         }
         alt="avatar"
-        width={60}
-        height={60}
-        className="rounded-full w-14 h-14"
+        width={50}
+        height={50}
+        className="rounded-full w-12 h-12"
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <div className="flex flex-row justify-between">
