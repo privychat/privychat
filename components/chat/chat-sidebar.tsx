@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import ChatBadge from "../ui/chat-badge";
 import {useAppContext} from "@/hooks/use-app-context";
-import {ChatType} from "@/constants";
+import {CHAT_TYPE} from "@/constants";
 import ChatItem from "./chat-item";
 import ChatSearch from "./chat-search";
 import {Separator} from "@/components/ui/separator";
@@ -28,7 +28,8 @@ const ChatSidebar = () => {
 
     if (scrollTop + clientHeight >= scrollHeight) {
       if (
-        (activeChatTab === ChatType.ALL || activeChatTab === ChatType.GROUPS) &&
+        (activeChatTab === CHAT_TYPE.ALL ||
+          activeChatTab === CHAT_TYPE.GROUPS) &&
         feeds &&
         !isUserInLastPage.feeds
       ) {
@@ -57,7 +58,7 @@ const ChatSidebar = () => {
       }
 
       if (
-        activeChatTab === ChatType.REQUESTS &&
+        activeChatTab === CHAT_TYPE.REQUESTS &&
         chat?.requests &&
         !isUserInLastPage.requests
       ) {
@@ -133,7 +134,7 @@ const FeedsTab = () => {
   const {chat, activeChatTab} = useAppContext();
   return (
     <>
-      {!chat?.feeds && activeChatTab === ChatType.ALL && (
+      {!chat?.feeds && activeChatTab === CHAT_TYPE.ALL && (
         <>
           {Array.from({length: 10}).map((_, index) => (
             <ChatItemLoaderSkeleton key={index} />
@@ -141,7 +142,7 @@ const FeedsTab = () => {
         </>
       )}{" "}
       {chat &&
-        activeChatTab === ChatType.ALL &&
+        activeChatTab === CHAT_TYPE.ALL &&
         chat.feeds &&
         chat.feeds.map((chat, index) => <ChatItem key={index} chat={chat} />)}
     </>
@@ -153,7 +154,7 @@ const RequestTab = () => {
 
   return (
     <>
-      {!chat?.requests && activeChatTab === ChatType.REQUESTS && (
+      {!chat?.requests && activeChatTab === CHAT_TYPE.REQUESTS && (
         <>
           {Array.from({length: 10}).map((_, index) => (
             <ChatItemLoaderSkeleton key={index} />
@@ -161,7 +162,7 @@ const RequestTab = () => {
         </>
       )}
       {chat &&
-        activeChatTab === ChatType.REQUESTS &&
+        activeChatTab === CHAT_TYPE.REQUESTS &&
         chat.requests &&
         chat.requests.map((chat, index) => (
           <ChatItem key={index} chat={chat} />
@@ -175,7 +176,7 @@ const GroupsTab = () => {
   return (
     <>
       {chat &&
-        activeChatTab === ChatType.GROUPS &&
+        activeChatTab === CHAT_TYPE.GROUPS &&
         chat.feeds &&
         chat.feeds
           .filter((chat) => chat.groupInformation?.chatId)

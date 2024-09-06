@@ -78,7 +78,7 @@ const SignUpModal = () => {
     }
   };
   return (
-    <section className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 bg-blur-lg bg-backdrop z-100">
+    <section className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 bg-blur-lg bg-backdrop z-100">
       <Card className="flex flex-col items-center justify-center border-none w-[340px] z-100">
         <CardHeader>
           <CardTitle className="text-lg md:text-2xl mb-2">

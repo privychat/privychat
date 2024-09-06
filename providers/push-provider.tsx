@@ -27,7 +27,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
   const [activeChatTab, setActiveChatTab] = useState<
-    "all" | "requests" | "pinned" | "archived"
+    "all" | "requests" | "pinned" | "archived" | "groups"
   >("all");
   // signer
   const {data: signer} = useWalletClient();
@@ -80,11 +80,9 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     }
   };
   const getUserChats = async () => {
-    const startTime = Date.now();
     const chats = await pushUser?.chat.list("CHATS", {
       limit: 10,
     });
-    console.log("Time taken to fetch chats", Date.now() - startTime);
 
     if (chats) {
       setFeeds(chats);
@@ -115,7 +113,28 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       });
 
       if (history) {
-        setFeedContent((prev) => ({...prev, [feed.chatId!]: history}));
+        const historyFormatted: IMessage[] = history
+          .map((msg) => {
+            return {
+              cid: msg.cid,
+              to: msg.toDID,
+              from: msg.fromDID,
+              type: msg.messageType,
+              messageContent: {
+                content: msg.messageObj.content,
+                ...(msg.messageObj.reference && {
+                  reference: msg.messageObj.reference,
+                }),
+              },
+              timestamp: msg.timestamp,
+            };
+          })
+          .reverse();
+
+        setFeedContent((prev) => ({
+          ...prev,
+          [feed.chatId!]: historyFormatted,
+        }));
       }
     });
 

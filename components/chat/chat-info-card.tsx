@@ -1,13 +1,31 @@
 import {DEFAULT_PFP} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
+import usePush from "@/hooks/use-push";
 import {trimAddress} from "@/lib/utils";
 import Image from "next/image";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {useEnsName} from "wagmi";
 
 const ChatInfoCard = () => {
   const {activeChat} = useAppContext();
+  const {resolveDomain} = usePush();
   const isAGroup = activeChat?.groupInformation?.chatId ? true : false;
+  const [domainName, setDomainName] = useState<string | null>(null);
+
+  const fetchDomainName = async () => {
+    if (!activeChat?.did || activeChat?.groupInformation?.chatId) {
+      return;
+    }
+    const name = await resolveDomain(activeChat?.did.slice(7)!);
+    if ("error" in name) {
+      return;
+    }
+    setDomainName(name.name[0]);
+  };
+
+  useEffect(() => {
+    fetchDomainName();
+  }, [activeChat]);
   return (
     <div className="rounded-md h-20 mx-2 bg-gray-600  bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 flex flex-row gap-4 items-center px-4">
       <Image
@@ -25,7 +43,7 @@ const ChatInfoCard = () => {
         <p className="text-md font-medium">
           {isAGroup
             ? activeChat?.groupInformation?.groupName
-            : trimAddress(activeChat?.did.slice(7)!)}
+            : domainName || trimAddress(activeChat?.did.slice(7)!)}
         </p>
       </div>
     </div>

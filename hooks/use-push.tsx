@@ -23,13 +23,15 @@ const usePush = () => {
     }
   };
 
-  const getUserInfo = async () => {
+  const getUserInfo = async ({overrideAccount}: {overrideAccount?: string}) => {
     if (!pushUser)
       return {
         error: "User not authenticated",
       };
     try {
-      const userInfo = await pushUser.info();
+      const userInfo = await pushUser.info({
+        ...(overrideAccount && {overrideAccount}),
+      });
       return userInfo;
     } catch (error) {
       return {

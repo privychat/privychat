@@ -9,7 +9,6 @@ const FullPageLoader = () => {
       className={`fixed inset-0 flex items-center justify-center bg-background text-primary-foreground z-100`}
     >
       <span className="animate-ping absolute inline-flex h-[100px] w-[100px] rounded-full bg-primary opacity-75"></span>
-      <p className="text-md md:text-lg text-white">Cooking...</p>
     </section>
   );
 };

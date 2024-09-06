@@ -58,7 +58,7 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <div className="flex flex-row justify-between">
-          <span className="text-md font-medium leading-none w-[90%] text-nowrap text-ellipsis overflow-x-hidden">
+          <span className="text-md font-medium leading-none w-[80%] text-nowrap text-ellipsis overflow-x-hidden">
             {chatName}
           </span>
 
@@ -70,9 +70,9 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
           {chat.msg.messageContent}
         </span>
       </div>
-      <div className="absolute flex justify-center items-center bottom-2 right-4 bg-[#24c55b] w-5 h-5 rounded-full">
+      {/* <div className="absolute flex justify-center items-center bottom-2 right-4 bg-[#24c55b] w-5 h-5 rounded-full">
         <p className="font-semibold text-muted text-sm">1</p>
-      </div>
+      </div> */}
     </div>
   );
 };
