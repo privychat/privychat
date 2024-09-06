@@ -38,7 +38,13 @@ const usePush = () => {
     }
   };
 
-  const getChats = async ({limit = 10}: {limit?: number}) => {
+  const getChats = async ({
+    limit = 10,
+    page = 1,
+  }: {
+    limit?: number;
+    page?: number;
+  }) => {
     if (!pushUser)
       return {
         error: "User not authenticated",
@@ -46,6 +52,7 @@ const usePush = () => {
     try {
       const chats = await pushUser.chat.list("CHATS", {
         limit,
+        page,
       });
       return chats;
     } catch (error) {
@@ -55,7 +62,13 @@ const usePush = () => {
     }
   };
 
-  const getRequests = async ({limit = 10}: {limit?: number}) => {
+  const getRequests = async ({
+    limit = 10,
+    page = 1,
+  }: {
+    limit?: number;
+    page?: number;
+  }) => {
     if (!pushUser)
       return {
         error: "User not authenticated",
@@ -63,6 +76,7 @@ const usePush = () => {
     try {
       const requests = await pushUser.chat.list("REQUESTS", {
         limit,
+        page,
       });
       return requests;
     } catch (error) {

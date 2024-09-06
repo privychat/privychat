@@ -36,8 +36,10 @@ interface IAppContext {
   setActiveChat: (chatid: IFeeds | null) => void;
   chatSearch: string;
   setChatSearch: (search: string) => void;
-  activeChatTab: "all" | "requests" | "pinned" | "archived";
-  setActiveChatTab: (tab: "all" | "requests" | "pinned" | "archived") => void;
+  activeChatTab: "all" | "requests" | "pinned" | "archived" | "groups";
+  setActiveChatTab: (
+    tab: "all" | "requests" | "pinned" | "archived" | "groups"
+  ) => void;
 }
 
 export type {IAppContext, IChat, IMessage};

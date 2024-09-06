@@ -5,4 +5,5 @@ export enum ChatType {
   REQUESTS = "requests",
   PINNED = "pinned",
   ARCHIVED = "archived",
+  GROUPS = "groups",
 }

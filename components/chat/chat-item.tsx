@@ -17,6 +17,7 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       ? (chat.groupInformation?.groupName as string)
       : ""
   );
+  const timestamp = convertUnixTimestamp(chat.msg.timestamp!);
 
   useEffect(() => {
     const fetchChatName = async () => {
@@ -38,7 +39,7 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       <Image
         src={
           (isAGroup
-            ? chat.groupInformation?.groupImage
+            ? chat.groupInformation?.groupImage || DEFAULT_PFP
             : chat.profilePicture) || DEFAULT_PFP
         }
         alt="avatar"
@@ -48,9 +49,12 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <div className="flex flex-row justify-between">
-          <span className="text-md font-medium leading-none">{chatName}</span>
-          <span className="text-sm text-muted-foreground">
-            {convertUnixTimestamp(chat.msg.timestamp!)}
+          <span className="text-md font-medium leading-none w-[90%] text-nowrap text-ellipsis overflow-x-hidden">
+            {chatName}
+          </span>
+
+          <span className="text-sm text-muted-foreground pl-1">
+            {timestamp ?? ""}
           </span>
         </div>
         <span className="w-[90%] text-nowrap text-ellipsis overflow-x-hidden text-sm text-muted-foreground">

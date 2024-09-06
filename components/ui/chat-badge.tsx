@@ -5,7 +5,7 @@ import {useAppContext} from "@/hooks/use-app-context";
 const ChatBadge = ({
   text,
 }: {
-  text: "all" | "requests" | "pinned" | "archived";
+  text: "all" | "requests" | "pinned" | "archived" | "groups";
 }) => {
   const {activeChatTab, setActiveChatTab, chat} = useAppContext();
   const handleTabChange = () => {
@@ -17,8 +17,8 @@ const ChatBadge = ({
       variant={`${activeChatTab === text ? "default" : "secondary"}`}
       className={`text-[16px] font-light px-4 py-[4px] ${
         activeChatTab === text
-          ? "font-medium text-white hover:bg-primary"
-          : "cursor-pointer hover:bg-transparent "
+          ? "font-medium text-white hover:bg-primary cursor-default"
+          : "cursor-pointer"
       }`}
       onClick={handleTabChange}
     >

@@ -27,10 +27,12 @@ function trimAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function convertUnixTimestamp(unixTimestamp: number): string {
+function convertUnixTimestamp(unixTimestamp: number): string | boolean {
   const currentDate = new Date();
   const timestampDate = new Date(unixTimestamp);
-
+  if (isNaN(timestampDate.getTime())) {
+    return false;
+  }
   const diffTime = Math.abs(currentDate.getTime() - timestampDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
