@@ -1,34 +1,61 @@
 "use client";
 
-import {useToast} from "@/hooks/use-toast";
-import usePush from "@/hooks/use-push";
 import {getUserKeys, saveUserKeys} from "@/lib/utils";
 import {IAppContext, IChat, IMessage} from "@/types";
 import {usePrivy} from "@privy-io/react-auth";
 import {CONSTANTS, IFeeds, IUser, PushAPI, user} from "@pushprotocol/restapi";
 import {createContext, useEffect, useRef, useState} from "react";
 import {useWalletClient} from "wagmi";
-
-export const AppContext = createContext<IAppContext>({} as IAppContext);
+import {AppContext} from "@/context/app-context";
 
 export default function AppProvider({children}: {children: React.ReactNode}) {
+  // user account related stated
   const [pushUser, setPushUser] = useState<PushAPI | null>(null);
   const [userInfo, setUserInfo] = useState<IUser | null>(null);
   const [account, setAccount] = useState<string | null>(null);
+  const [isUserAuthenticated, setIsUserAuthenticated] =
+    useState<boolean>(false);
+  // chat related states
   const [feeds, setFeeds] = useState<IFeeds[] | null>(null);
   const [requests, setRequests] = useState<IFeeds[] | null>(null);
+  const [fetchingChats, setFetchingChats] = useState<{
+    feeds: {
+      allPagesFetched: boolean;
+      fetching: boolean;
+    };
+    requests: {
+      allPagesFetched: boolean;
+      fetching: boolean;
+    };
+  }>({
+    feeds: {
+      allPagesFetched: false,
+      fetching: false,
+    },
+    requests: {
+      allPagesFetched: false,
+      fetching: false,
+    },
+  });
+
+  // stores the last 15 messages for each chat
   const [feedContent, setFeedContent] = useState<{
     [key: string]: IMessage[] | null;
   }>({});
+
+  // incoming stream message from socket
   const [streamMessage, setStreamMessage] = useState<any | null>(null);
+
+  // stream ref
   const pushStream = useRef<any | null>(null);
-  const [isUserAuthenticated, setIsUserAuthenticated] =
-    useState<boolean>(false);
+
+  // used to store the active chat, search query and active chat tab
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
   const [activeChatTab, setActiveChatTab] = useState<
     "all" | "requests" | "pinned" | "archived" | "groups"
   >("all");
+
   // signer
   const {data: signer} = useWalletClient();
   // privy user
@@ -79,14 +106,42 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       console.error(error);
     }
   };
-  const getUserChats = async () => {
+  const getUserChats = async (page: number = 1) => {
+    setFetchingChats((prev) => ({
+      ...prev,
+      feeds: {
+        ...prev.feeds,
+        fetching: true,
+      },
+    }));
     const chats = await pushUser?.chat.list("CHATS", {
       limit: 10,
+      page,
     });
 
     if (chats) {
-      setFeeds(chats);
-      await getMessagesForLatestChats(chats);
+      setFetchingChats((prev) => ({
+        ...prev,
+        feeds: {
+          ...prev.feeds,
+          fetching: false,
+        },
+      }));
+      if (chats.length === 0) {
+        setFetchingChats((prev) => ({
+          ...prev,
+          feeds: {
+            ...prev.feeds,
+            allPagesFetched: true,
+          },
+        }));
+        return;
+      }
+      if (page === 1) {
+        setFeeds(chats);
+      } else setFeeds((prevChats) => [...(prevChats || []), ...chats]);
+
+      await getUserChats(page + 1);
     }
   };
 
@@ -96,6 +151,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     });
     if (requests) {
       setRequests(requests);
+      await getMessagesForLatestChats(requests);
     }
   };
 
@@ -121,8 +177,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
               from: msg.fromDID,
               type: msg.messageType,
               messageContent: {
-                content: msg.messageObj.content,
-                ...(msg.messageObj.reference && {
+                content: msg.messageObj?.content ?? "",
+                ...(msg.messageObj?.reference && {
                   reference: msg.messageObj.reference,
                 }),
               },
@@ -141,6 +197,12 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     await Promise.all(historyPromises);
   };
 
+  useEffect(() => {
+    const newFeeds = feeds?.filter(
+      (feed) => !(feed.chatId! in Object.keys(feedContent))
+    );
+    getMessagesForLatestChats(newFeeds || []);
+  }, [feeds]);
   useEffect(() => {
     if (pushUser) {
       Promise.all([getUserChats(), getUserRequests(), getUserDetails()]);
@@ -177,9 +239,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
           setRequests,
           feedContent,
           setFeedContent,
+          fetchingChats,
         },
-        setFeeds,
-        setRequests,
         pushStream,
         setPushStream: pushStream.current,
         streamMessage,

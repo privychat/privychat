@@ -106,17 +106,21 @@ const usePush = () => {
         limit,
         ...(reference && {reference}),
       });
-      return chatHistory.map((message) => ({
-        cid: message.cid,
-        from: message.fromDID,
-        to: message.toDID,
-        timestamp: message.timestamp,
-        messageContent: {
-          content: message.messageObj.content,
-          reference: message.messageObj.reference || undefined,
-        },
-        type: message.messageType,
-      }));
+      return chatHistory
+        .map((message) => ({
+          cid: message.cid,
+          from: message.fromDID,
+          to: message.toDID,
+          timestamp: message.timestamp,
+          messageContent: {
+            content: message.messageObj.content,
+            ...(message.messageObj.reference && {
+              reference: message.messageObj.reference,
+            }),
+          },
+          type: message.messageType,
+        }))
+        .reverse();
     } catch (error) {
       return {
         error: error,

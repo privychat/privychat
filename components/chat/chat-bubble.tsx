@@ -5,6 +5,8 @@ import {convertUnixTimestampToHHMM, trimAddress} from "@/lib/utils";
 import {IMessage} from "@/types";
 import Image from "next/image";
 import React, {useEffect, useState} from "react";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 
 const ChatBubble = ({
   message,
@@ -23,11 +25,10 @@ const ChatBubble = ({
 }) => {
   const {account, activeChat} = useAppContext();
   const {getUserInfo, resolveDomain} = usePush();
-
+  const isSelfMessage = sender.slice(7) === account;
   // only for group chats
   const [senderImage, setSenderImage] = useState<string | null>(null);
   const [senderName, setSenderName] = useState<string | null>(null);
-  console.log("ChatBubble", message, messageType);
   useEffect(() => {
     const getSenderImage = async () => {
       if (activeChat?.groupInformation?.chatId) {
@@ -54,24 +55,26 @@ const ChatBubble = ({
   return (
     <div
       className={`flex flex-row ${
-        sender.slice(7) === account ? "justify-end" : "justify-start items-end"
+        isSelfMessage ? "justify-end" : "justify-start items-end"
       }`}
     >
-      {activeChat?.groupInformation?.chatId && sender.slice(7) != account && (
+      {activeChat?.groupInformation?.chatId && !isSelfMessage && (
         <Image
           src={senderImage || DEFAULT_PFP}
           alt="avatar"
           width={20}
           height={20}
-          className="rounded-full w-6 h-6 mr-2"
+          className={`rounded-full w-6 h-6 mr-2 ${
+            reactions && reactions.length > 0 ? "-translate-y-4" : ""
+          }`}
         />
       )}
       <div
-        className={`relative flex flex-col rounded-md w-fit min-w-[12%] max-w-[60%] ${
-          sender.slice(7) === account ? "bg-secondary" : "bg-secondary"
+        className={`relative flex flex-col rounded-md w-fit min-w-[20%] max-w-[60%] ${
+          isSelfMessage ? "bg-secondary" : "bg-secondary"
         } ${reactions && reactions.length > 0 ? "mb-4" : "mb-0"}`}
       >
-        {activeChat?.groupInformation?.chatId && sender.slice(7) != account && (
+        {activeChat?.groupInformation?.chatId && !isSelfMessage && (
           <p
             className={`px-4 pt-3 pb-0`}
             style={{
@@ -83,8 +86,8 @@ const ChatBubble = ({
         )}
         {messageType === MESSAGE_TYPE.TEXT && (
           <p
-            className={`px-4 text-wrap break-words text-white/75 ${
-              activeChat?.groupInformation?.chatId && sender.slice(7) != account
+            className={`px-4 text-wrap break-words text-white/75 whitespace-pre-wrap ${
+              activeChat?.groupInformation?.chatId && !isSelfMessage
                 ? "pt-1"
                 : "pt-3"
             }`}
@@ -113,7 +116,7 @@ const ChatBubble = ({
         )}
         <span
           className={`text-xs mt-1  pb-1 pr-2 text-right text-muted-foreground ${
-            sender.slice(7) != account ? "" : ""
+            !isSelfMessage ? "" : ""
           } ${
             messageType !== MESSAGE_TYPE.TEXT
               ? "absolute bottom-0 right-0 text-muted-foreground font-medium "
@@ -122,13 +125,88 @@ const ChatBubble = ({
         >
           {convertUnixTimestampToHHMM(timestamp)}
         </span>
+
         {reactions && reactions.length > 0 && (
-          <div className="flex flex-row gap-1 bg-gray-800  px-3 py-[6px] absolute -bottom-4 left-2 w-fit rounded-full">
-            {reactions?.map((reaction, i) => (
-              <div key={i} className="text-xs">
-                {reaction.messageContent.content}
-              </div>
-            ))}
+          <div className="absolute -bottom-4 left-2">
+            <Popover>
+              <PopoverTrigger className="flex flex-row bg-gray-800  px-3 py-[6px]  w-fit rounded-full gap-2">
+                {reactions
+                  ?.reduce((uniqueReactions: IMessage[], reaction) => {
+                    if (
+                      !uniqueReactions.some(
+                        (r) =>
+                          r.messageContent.content ===
+                          reaction.messageContent.content
+                      )
+                    ) {
+                      uniqueReactions.push(reaction);
+                    }
+                    return uniqueReactions;
+                  }, [])
+                  ?.slice(0, 2)
+                  ?.map((reaction, i) => (
+                    <div key={i} className="text-xs">
+                      {reaction.messageContent.content}
+                    </div>
+                  ))}
+                {reactions.length > 2 && (
+                  <div className="text-xs">+{reactions.length - 2}</div>
+                )}
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className=" p-0 w-fit border-transparent rounded-md"
+              >
+                <Tabs defaultValue={"all"} className="w-fit">
+                  <TabsList className="w-full flex justify-start items-start">
+                    <TabsTrigger value={"all"}>All</TabsTrigger>
+                    {reactions.map((reaction, i) => (
+                      <TabsTrigger
+                        key={i}
+                        value={reaction.messageContent.content.toLowerCase()}
+                      >
+                        {reaction.messageContent.content}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+
+                  <TabsContent value={"all"}>
+                    <div className="flex flex-col p-4 gap-2">
+                      {reactions.map((reaction, i) => (
+                        <div key={i} className="text-xs text-muted-foreground">
+                          {reaction.messageContent.content} -{" "}
+                          {trimAddress(reaction.from.slice(7))}
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  {reactions.map((reaction, i) => (
+                    <TabsContent
+                      key={i}
+                      value={reaction.messageContent.content.toLowerCase()}
+                    >
+                      <div className="flex flex-col p-4 gap-2">
+                        {reactions
+                          .filter(
+                            (r) =>
+                              r.messageContent.content ===
+                              reaction.messageContent.content
+                          )
+                          .map((reaction, i) => (
+                            <div
+                              key={i}
+                              className="text-xs text-muted-foreground"
+                            >
+                              {trimAddress(reaction.from.slice(7))}
+                            </div>
+                          ))}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </PopoverContent>
+            </Popover>
           </div>
         )}
       </div>

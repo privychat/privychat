@@ -10,36 +10,46 @@ interface IMessage {
 }
 interface IChat {
   feeds: IFeeds[] | null;
-  setFeeds: (feeds: IFeeds[] | null) => void;
+  setFeeds: React.Dispatch<React.SetStateAction<IFeeds[] | null>>;
   requests: IFeeds[] | null;
-  setRequests: (requests: IFeeds[] | null) => void;
+  setRequests: React.Dispatch<React.SetStateAction<IFeeds[] | null>>;
   feedContent: {[key: string]: IMessage[] | null}; // chatid -> chat.history []
-  setFeedContent: (feedContent: {[key: string]: IMessage[] | null}) => void;
+  setFeedContent: React.Dispatch<
+    React.SetStateAction<{[key: string]: IMessage[] | null}>
+  >;
+  fetchingChats: {
+    feeds: {
+      allPagesFetched: boolean;
+      fetching: boolean;
+    };
+    requests: {
+      allPagesFetched: boolean;
+      fetching: boolean;
+    };
+  };
 }
 interface IAppContext {
   isUserAuthenticated: boolean;
-  setIsUserAuthenticated: (isAuthenticated: boolean) => void;
+  setIsUserAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   account: string | null;
-  setAccount: (account: string | null) => void;
+  setAccount: React.Dispatch<React.SetStateAction<string | null>>;
   pushUser: PushAPI | null;
-  setPushUser: (user: PushAPI | null) => void;
+  setPushUser: React.Dispatch<React.SetStateAction<PushAPI | null>>;
   userInfo: IUser | null;
-  setUserInfo: (userInfo: IUser | null) => void;
+  setUserInfo: React.Dispatch<React.SetStateAction<IUser | null>>;
   chat: IChat | null;
-  setFeeds: (feeds: IFeeds[] | null) => void;
-  setRequests: (requests: IFeeds[] | null) => void;
   pushStream: any | null;
-  setPushStream: (pushStream: any | null) => void;
+  setPushStream: React.Dispatch<React.SetStateAction<any | null>>;
   streamMessage: any | null;
-  setStreamMessage: (streamMessage: any) => void;
+  setStreamMessage: React.Dispatch<React.SetStateAction<any | null>>;
   activeChat: IFeeds | null; // IFeed of the chat active
-  setActiveChat: (chatid: IFeeds | null) => void;
+  setActiveChat: React.Dispatch<React.SetStateAction<IFeeds | null>>;
   chatSearch: string;
-  setChatSearch: (search: string) => void;
+  setChatSearch: React.Dispatch<React.SetStateAction<string>>;
   activeChatTab: "all" | "requests" | "pinned" | "archived" | "groups";
-  setActiveChatTab: (
-    tab: "all" | "requests" | "pinned" | "archived" | "groups"
-  ) => void;
+  setActiveChatTab: React.Dispatch<
+    React.SetStateAction<"all" | "requests" | "pinned" | "archived" | "groups">
+  >;
 }
 
 export type {IAppContext, IChat, IMessage};
