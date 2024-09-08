@@ -3,28 +3,35 @@ import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {trimAddress} from "@/lib/utils";
 import Image from "next/image";
-import React, {useEffect, useState} from "react";
+import React, {use, useEffect, useState} from "react";
 import {useEnsName} from "wagmi";
 
 const ChatInfoCard = () => {
   const {activeChat} = useAppContext();
   const {resolveDomain} = usePush();
   const isAGroup = activeChat?.groupInformation?.chatId ? true : false;
-  const [domainName, setDomainName] = useState<string | null>(null);
-
+  const [chatName, setChatName] = useState<string>();
   const fetchDomainName = async () => {
-    if (!activeChat?.did || activeChat?.groupInformation?.chatId) {
+    if (!activeChat?.did || isAGroup) {
       return;
     }
     const name = await resolveDomain(activeChat?.did.slice(7)!);
     if ("error" in name) {
       return;
     }
-    setDomainName(name.name[0]);
+    setChatName(name.name[0] ?? trimAddress(activeChat?.did.slice(7)!));
   };
 
   useEffect(() => {
     fetchDomainName();
+  }, [activeChat]);
+
+  useEffect(() => {
+    if (isAGroup)
+      setChatName(
+        activeChat?.groupInformation?.groupName || activeChat?.chatId!
+      );
+    else setChatName(trimAddress(activeChat?.did.slice(7)!));
   }, [activeChat]);
   return (
     <div className="rounded-md h-20 mx-2 bg-gray-600  bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 flex flex-row gap-4 items-center px-4">
@@ -40,11 +47,7 @@ const ChatInfoCard = () => {
         className="rounded-full w-12 h-12"
       />
       <div className="flex flex-col ">
-        <p className="text-md font-medium">
-          {isAGroup
-            ? activeChat?.groupInformation?.groupName
-            : domainName || trimAddress(activeChat?.did.slice(7)!)}
-        </p>
+        <p className="text-md font-medium">{chatName}</p>
       </div>
     </div>
   );

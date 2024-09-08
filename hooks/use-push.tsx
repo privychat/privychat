@@ -118,6 +118,7 @@ const usePush = () => {
               reference: message.messageObj.reference,
             }),
           },
+          link: message.link,
           type: message.messageType,
         }))
         .reverse();
@@ -128,12 +129,41 @@ const usePush = () => {
     }
   };
 
+  const sendMessage = async ({
+    chatId,
+    message,
+    reference,
+    type,
+  }: {
+    chatId: string;
+    message: string;
+    reference?: string;
+    type: "Text" | "Image" | "GIF" | "Reaction" | "File";
+  }) => {
+    if (!pushUser)
+      return {
+        error: "User not authenticated",
+      };
+    try {
+      const sentMessage = await pushUser.chat.send(chatId, {
+        content: message,
+        type: type || "Text",
+        reference: reference || "",
+      });
+      return sentMessage;
+    } catch (error) {
+      return {
+        error: error,
+      };
+    }
+  };
   return {
     getUserInfo,
     getChats,
     getRequests,
     getChatHistory,
     resolveDomain,
+    sendMessage,
   };
 };
 

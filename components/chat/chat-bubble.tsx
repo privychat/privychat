@@ -86,11 +86,7 @@ const ChatBubble = ({
         )}
         {messageType === MESSAGE_TYPE.TEXT && (
           <p
-            className={`px-4 text-wrap break-words text-white/75 whitespace-pre-wrap ${
-              activeChat?.groupInformation?.chatId && !isSelfMessage
-                ? "pt-1"
-                : "pt-3"
-            }`}
+            className={`px-4 pt-3 text-wrap break-words text-white/75 whitespace-pre-wrap`}
           >
             {message}
           </p>
@@ -102,7 +98,7 @@ const ChatBubble = ({
             alt="image"
             width={100}
             height={100}
-            className="rounded-md w-[400px] h-auto"
+            className="rounded-md w-[400px] h-auto pt-2"
           />
         )}
         {messageType === MESSAGE_TYPE.GIF && (
@@ -111,7 +107,7 @@ const ChatBubble = ({
             alt="image"
             width={100}
             height={100}
-            className="rounded-md w-[400px] h-auto"
+            className="rounded-md w-[400px] h-auto pt-2"
           />
         )}
         <span
@@ -160,50 +156,92 @@ const ChatBubble = ({
                 <Tabs defaultValue={"all"} className="w-fit">
                   <TabsList className="w-full flex justify-start items-start">
                     <TabsTrigger value={"all"}>All</TabsTrigger>
-                    {reactions.map((reaction, i) => (
-                      <TabsTrigger
-                        key={i}
-                        value={reaction.messageContent.content.toLowerCase()}
-                      >
-                        {reaction.messageContent.content}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-
-                  <TabsContent value={"all"}>
-                    <div className="flex flex-col p-4 gap-2">
-                      {reactions.map((reaction, i) => (
-                        <div key={i} className="text-xs text-muted-foreground">
-                          {reaction.messageContent.content} -{" "}
-                          {trimAddress(reaction.from.slice(7))}
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  {reactions.map((reaction, i) => (
-                    <TabsContent
-                      key={i}
-                      value={reaction.messageContent.content.toLowerCase()}
-                    >
-                      <div className="flex flex-col p-4 gap-2">
-                        {reactions
-                          .filter(
+                    {reactions
+                      ?.reduce((uniqueReactions: IMessage[], reaction) => {
+                        if (
+                          !uniqueReactions.some(
                             (r) =>
                               r.messageContent.content ===
                               reaction.messageContent.content
                           )
-                          .map((reaction, i) => (
-                            <div
-                              key={i}
-                              className="text-xs text-muted-foreground"
-                            >
-                              {trimAddress(reaction.from.slice(7))}
-                            </div>
-                          ))}
-                      </div>
-                    </TabsContent>
-                  ))}
+                        ) {
+                          uniqueReactions.push(reaction);
+                        }
+                        return uniqueReactions;
+                      }, [])
+                      .map((reaction, i) => (
+                        <TabsTrigger
+                          key={i}
+                          value={reaction.messageContent.content.toLowerCase()}
+                        >
+                          {reaction.messageContent.content}
+                        </TabsTrigger>
+                      ))}
+                  </TabsList>
+
+                  <TabsContent value={"all"}>
+                    <div className="flex flex-col p-4 gap-2">
+                      {reactions
+                        ?.reduce((uniqueReactions: IMessage[], reaction) => {
+                          if (
+                            !uniqueReactions.some(
+                              (r) =>
+                                r.messageContent.content ===
+                                reaction.messageContent.content
+                            )
+                          ) {
+                            uniqueReactions.push(reaction);
+                          }
+                          return uniqueReactions;
+                        }, [])
+                        .map((reaction, i) => (
+                          <div
+                            key={i}
+                            className="text-xs text-muted-foreground"
+                          >
+                            {reaction.messageContent.content} -{" "}
+                            {trimAddress(reaction.from.slice(7))}
+                          </div>
+                        ))}
+                    </div>
+                  </TabsContent>
+
+                  {reactions
+                    ?.reduce((uniqueReactions: IMessage[], reaction) => {
+                      if (
+                        !uniqueReactions.some(
+                          (r) =>
+                            r.messageContent.content ===
+                            reaction.messageContent.content
+                        )
+                      ) {
+                        uniqueReactions.push(reaction);
+                      }
+                      return uniqueReactions;
+                    }, [])
+                    .map((reaction, i) => (
+                      <TabsContent
+                        key={i}
+                        value={reaction.messageContent.content.toLowerCase()}
+                      >
+                        <div className="flex flex-col p-4 gap-2">
+                          {reactions
+                            .filter(
+                              (r) =>
+                                r.messageContent.content ===
+                                reaction.messageContent.content
+                            )
+                            .map((reaction, i) => (
+                              <div
+                                key={i}
+                                className="text-xs text-muted-foreground"
+                              >
+                                {trimAddress(reaction.from.slice(7))}
+                              </div>
+                            ))}
+                        </div>
+                      </TabsContent>
+                    ))}
                 </Tabs>
               </PopoverContent>
             </Popover>

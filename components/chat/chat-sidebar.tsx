@@ -101,7 +101,11 @@ const GroupsTab = () => {
   );
 };
 
-const FetchingMoreMessagesLoader = ({showLoader}: {showLoader?: boolean}) => {
+export const FetchingMoreMessagesLoader = ({
+  showLoader,
+}: {
+  showLoader?: boolean;
+}) => {
   return (
     <div
       className={`flex flex-row justify-center items-center gap-2 py-4 ${

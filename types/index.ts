@@ -7,6 +7,7 @@ interface IMessage {
   type: string;
   messageContent: {content: string; reference?: string};
   timestamp: number;
+  link: string;
 }
 interface IChat {
   feeds: IFeeds[] | null;

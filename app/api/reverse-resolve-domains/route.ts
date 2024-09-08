@@ -6,6 +6,7 @@ import {mainnet} from "viem/chains";
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const address = searchParams.get("address");
+
   const publicClient = createPublicClient({
     chain: mainnet,
     transport: http(

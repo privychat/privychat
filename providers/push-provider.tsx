@@ -183,6 +183,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
                 }),
               },
               timestamp: msg.timestamp,
+              link: msg.link,
             };
           })
           .reverse();
