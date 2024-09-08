@@ -103,8 +103,10 @@ const GroupsTab = () => {
 
 export const FetchingMoreMessagesLoader = ({
   showLoader,
+  text,
 }: {
   showLoader?: boolean;
+  text?: string;
 }) => {
   return (
     <div
@@ -115,7 +117,7 @@ export const FetchingMoreMessagesLoader = ({
       <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>
       <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
       <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
-      <p className="text-muted-foreground">Fetching more chats</p>
+      <p className="text-muted-foreground">{text ?? "Fetching more chats"}</p>
       <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
       <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
       <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>

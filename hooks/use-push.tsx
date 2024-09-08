@@ -2,6 +2,7 @@
 import axios from "axios";
 
 import {useAppContext} from "./use-app-context";
+import {MESSAGE_TYPE} from "@/constants";
 
 const usePush = () => {
   const {pushUser} = useAppContext();
@@ -138,19 +139,27 @@ const usePush = () => {
     chatId: string;
     message: string;
     reference?: string;
-    type: "Text" | "Image" | "GIF" | "Reaction" | "File";
+    type: MESSAGE_TYPE;
   }) => {
     if (!pushUser)
       return {
         error: "User not authenticated",
       };
     try {
-      const sentMessage = await pushUser.chat.send(chatId, {
-        content: message,
-        type: type || "Text",
-        reference: reference || "",
-      });
-      return sentMessage;
+      if (type === MESSAGE_TYPE.REACTION) {
+        const sentMessage = await pushUser.chat.send(chatId, {
+          content: message,
+          type: type,
+          reference: reference!,
+        });
+        return sentMessage;
+      } else {
+        const sentMessage = await pushUser.chat.send(chatId, {
+          content: message,
+          type: type,
+        });
+        return sentMessage;
+      }
     } catch (error) {
       return {
         error: error,

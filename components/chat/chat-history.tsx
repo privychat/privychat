@@ -84,7 +84,6 @@ const ChatMessagesContainer = () => {
   const handleScroll = async () => {
     if (scrollRef.current) {
       const {scrollTop, scrollHeight, clientHeight} = scrollRef.current;
-      console.log(scrollTop, scrollHeight, clientHeight);
       if (scrollTop === 0 && !loading && !stopPagination) {
         if (messages && messages.length % 15 !== 0) return;
         if (loading) return;
@@ -118,7 +117,10 @@ const ChatMessagesContainer = () => {
       onScroll={handleScroll}
       className="rounded-md flex-1 mx-2 bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 flex flex-col overflow-y-auto p-4 gap-4"
     >
-      <FetchingMoreMessagesLoader showLoader={loading} />
+      <FetchingMoreMessagesLoader
+        showLoader={loading}
+        text={"Fetching older messages"}
+      />
       {messages &&
         messages.map((msg, i) => {
           const reactions = messages?.filter(
