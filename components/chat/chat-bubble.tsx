@@ -24,7 +24,7 @@ const ChatBubble = ({
   reactions?: IMessage[];
 }) => {
   const {account, activeChat} = useAppContext();
-  const {getUserInfo, resolveDomain} = usePush();
+  const {getUserInfo, reverseResolveDomain} = usePush();
   const isSelfMessage = sender.slice(7) === account;
   // only for group chats
   const [senderImage, setSenderImage] = useState<string | null>(null);
@@ -44,7 +44,7 @@ const ChatBubble = ({
     };
     const getSenderName = async () => {
       if (!activeChat?.groupInformation?.chatId) return;
-      const name = await resolveDomain(sender.slice(7));
+      const name = await reverseResolveDomain(sender.slice(7));
       if ("error" in name) return;
       setSenderName(name.name[0]);
     };

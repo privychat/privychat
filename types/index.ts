@@ -1,5 +1,22 @@
+import {CHAT_TYPE} from "@/constants";
 import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
 
+interface IStreamMessage {
+  event: string;
+  origin: string;
+  timestamp: string;
+  chatId: string;
+  from: string;
+  to: string[];
+  message: {
+    type: string;
+    content: string;
+  };
+  meta: {
+    group: boolean;
+  };
+  reference: string;
+}
 interface IMessage {
   cid: string;
   to: string;
@@ -47,10 +64,8 @@ interface IAppContext {
   setActiveChat: React.Dispatch<React.SetStateAction<IFeeds | null>>;
   chatSearch: string;
   setChatSearch: React.Dispatch<React.SetStateAction<string>>;
-  activeChatTab: "all" | "requests" | "pinned" | "archived" | "groups";
-  setActiveChatTab: React.Dispatch<
-    React.SetStateAction<"all" | "requests" | "pinned" | "archived" | "groups">
-  >;
+  activeChatTab: CHAT_TYPE;
+  setActiveChatTab: React.Dispatch<React.SetStateAction<CHAT_TYPE>>;
 }
 
-export type {IAppContext, IChat, IMessage};
+export type {IAppContext, IChat, IMessage, IStreamMessage};

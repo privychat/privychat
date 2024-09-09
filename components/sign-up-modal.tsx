@@ -1,5 +1,5 @@
 import {useAppContext} from "@/hooks/use-app-context";
-import {getUserKeys, saveUserKeys} from "@/lib/utils";
+import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {usePrivy} from "@privy-io/react-auth";
 import {CONSTANTS, PushAPI} from "@pushprotocol/restapi";
 import React from "react";
@@ -13,6 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {Button} from "./ui/button";
+import usePush from "@/hooks/use-push";
+import {IChat, IStreamMessage} from "@/types";
 
 const SignUpModal = () => {
   const {data: signer} = useWalletClient();
@@ -23,7 +25,9 @@ const SignUpModal = () => {
     setPushUser,
     pushStream,
     setStreamMessage,
+    chat,
   } = useAppContext();
+  const {setFeedContent} = chat as IChat;
   const [loading, setLoading] = React.useState(false);
   const initializePushUser = async () => {
     if (isUserAuthenticated && signer) {
@@ -59,9 +63,35 @@ const SignUpModal = () => {
         });
 
         // Chat message received:
-        stream.on(CONSTANTS.STREAM.CHAT, (message) => {
-          console.log("Chat", message);
-          setStreamMessage(message);
+        stream.on(CONSTANTS.STREAM.CHAT, (stream: IStreamMessage) => {
+          if (stream.event !== "chat.message") return;
+          const {chatId, from, message, meta, timestamp, reference, origin} =
+            stream;
+          setFeedContent((prev) => {
+            const currentChatHistory = prev[chatId] || [];
+            return {
+              ...prev,
+              [chatId]: [
+                ...currentChatHistory,
+                {
+                  cid: reference,
+                  from: from,
+                  to: chatId,
+                  timestamp: Number(timestamp),
+                  messageContent: {
+                    content: message.content,
+                  },
+                  link: reference,
+                  type: message.type,
+                },
+              ],
+            };
+          });
+
+          setStreamMessage(stream);
+          if (origin != "self") {
+            playNotification();
+          }
         });
         stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
           console.log("Chat Ops", message);

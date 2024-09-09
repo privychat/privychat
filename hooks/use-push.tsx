@@ -3,11 +3,12 @@ import axios from "axios";
 
 import {useAppContext} from "./use-app-context";
 import {MESSAGE_TYPE} from "@/constants";
-
+import {IChat, IStreamMessage} from "@/types";
 const usePush = () => {
-  const {pushUser} = useAppContext();
+  const {pushUser, chat} = useAppContext();
+  const {setFeedContent} = chat as IChat;
 
-  const resolveDomain = async (
+  const reverseResolveDomain = async (
     address: string
   ): Promise<{name: string} | {error: any}> => {
     try {
@@ -17,6 +18,19 @@ const usePush = () => {
       return {
         name: resolvedDomain.data,
       };
+    } catch (error) {
+      return {
+        error: error,
+      };
+    }
+  };
+
+  const resolveDomain = async (domain: string) => {
+    try {
+      const resolvedDomain = await axios.get(
+        `/api/resolve-domain?domain=${domain}`
+      );
+      return resolvedDomain.data.address;
     } catch (error) {
       return {
         error: error,
@@ -166,13 +180,40 @@ const usePush = () => {
       };
     }
   };
+
+  const incomingMessageHandler = async (stream: IStreamMessage) => {
+    if (stream.event !== "chat.message") return;
+    const {chatId, from, message, meta, timestamp, reference} = stream;
+    setFeedContent((prev) => {
+      const currentChatHistory = prev[chatId] || [];
+      return {
+        ...prev,
+        [chatId]: [
+          ...currentChatHistory,
+          {
+            cid: reference,
+            from: from,
+            to: chatId,
+            timestamp: new Date(timestamp).getTime(),
+            messageContent: {
+              content: message.content,
+            },
+            link: "",
+            type: message.type,
+          },
+        ],
+      };
+    });
+  };
   return {
     getUserInfo,
     getChats,
     getRequests,
     getChatHistory,
-    resolveDomain,
+    reverseResolveDomain,
     sendMessage,
+    resolveDomain,
+    incomingMessageHandler,
   };
 };
 

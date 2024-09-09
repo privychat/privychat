@@ -15,13 +15,10 @@ const ChatMessageWindow = () => {
           <ChatInput />
         </div>
       ) : (
-        <div className="rounded-md h-full  flex flex-col flex-1 gap-2 py-1">
-          <div className="flex flex-col gap-2 items-center justify-center h-full">
-            <p className="text-gray-400 text-md">Start a new conversation</p>
-          </div>
+        <div className="rounded-md h-full  flex flex-col  justify-end flex-1 gap-2 py-1">
           <div className="flex flex-row justify-center items-center py-4 text-muted-foreground">
             <LockClosedIcon className="w-4 h-4 mx-2 text-gray-400 " />
-            <p className="text-sm">
+            <p className="md:text-sm lg:text-sm">
               All messages are encrypted and can be only read by you. Secured by
               Push Network.
             </p>

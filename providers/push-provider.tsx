@@ -1,12 +1,20 @@
 "use client";
 
-import {getUserKeys, saveUserKeys} from "@/lib/utils";
-import {IAppContext, IChat, IMessage} from "@/types";
+import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
+import {IAppContext, IChat, IMessage, IStreamMessage} from "@/types";
 import {usePrivy} from "@privy-io/react-auth";
-import {CONSTANTS, IFeeds, IUser, PushAPI, user} from "@pushprotocol/restapi";
+import {
+  CONSTANTS,
+  IFeeds,
+  IUser,
+  PushAPI,
+  TYPES,
+  user,
+} from "@pushprotocol/restapi";
 import {createContext, useEffect, useRef, useState} from "react";
 import {useWalletClient} from "wagmi";
 import {AppContext} from "@/context/app-context";
+import {CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
 
 export default function AppProvider({children}: {children: React.ReactNode}) {
   // user account related stated
@@ -52,9 +60,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   // used to store the active chat, search query and active chat tab
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
-  const [activeChatTab, setActiveChatTab] = useState<
-    "all" | "requests" | "pinned" | "archived" | "groups"
-  >("all");
+  const [activeChatTab, setActiveChatTab] = useState<CHAT_TYPE>(CHAT_TYPE.ALL);
 
   // signer
   const {data: signer} = useWalletClient();
@@ -91,9 +97,35 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       });
 
       // Chat message received:
-      stream.on(CONSTANTS.STREAM.CHAT, (message) => {
-        console.log("Chat", message);
-        setStreamMessage(message);
+      stream.on(CONSTANTS.STREAM.CHAT, (stream: IStreamMessage) => {
+        if (stream.event !== "chat.message") return;
+        const {chatId, from, message, meta, timestamp, reference, origin} =
+          stream;
+        setFeedContent((prev) => {
+          const currentChatHistory = prev[chatId] || [];
+          return {
+            ...prev,
+            [chatId]: [
+              ...currentChatHistory,
+              {
+                cid: reference,
+                from: from,
+                to: chatId,
+                timestamp: Number(timestamp),
+                messageContent: {
+                  content: message.content,
+                },
+                link: reference,
+                type: message.type,
+              },
+            ],
+          };
+        });
+        console.log("Stream Message", stream);
+        setStreamMessage(stream);
+        if (origin != "self") {
+          playNotification();
+        }
       });
       stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
         console.log("Chat Ops", message);

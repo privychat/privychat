@@ -2,13 +2,15 @@ import {DEFAULT_PFP} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {convertUnixTimestamp, trimAddress} from "@/lib/utils";
+import {IChat} from "@/types";
 import {IFeeds} from "@pushprotocol/restapi";
 import Image from "next/image";
 import React, {useEffect, useState} from "react";
 
 const ChatItem = ({chat}: {chat: IFeeds}) => {
-  const {resolveDomain} = usePush();
-  const {setActiveChat} = useAppContext();
+  const {reverseResolveDomain} = usePush();
+  const {setActiveChat, chat: chatContext, activeChat} = useAppContext();
+  const {feedContent} = chatContext as IChat;
   const [isAGroup, setIsAGroup] = useState<boolean>(
     chat.groupInformation?.chatId ? true : false
   );
@@ -20,7 +22,15 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       ? (chat.groupInformation?.groupName as string)
       : ""
   );
-  const timestamp = convertUnixTimestamp(chat.msg.timestamp!);
+  const timestamp = convertUnixTimestamp(
+    chat?.chatId &&
+      feedContent[chat.chatId] &&
+      feedContent[chat.chatId]?.length &&
+      Number(feedContent[chat.chatId]?.length) > 0
+      ? feedContent[chat.chatId]![Number(feedContent[chat.chatId]?.length) - 1]
+          ?.timestamp
+      : chat.msg.timestamp!
+  );
 
   const handleClick = () => {
     setActiveChat(chat);
@@ -30,7 +40,7 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       if (!chat.did || chat.groupInformation?.chatId) {
         return;
       }
-      const name = await resolveDomain(chat.did.slice(7));
+      const name = await reverseResolveDomain(chat.did.slice(7));
       if ("error" in name) {
         return;
       }
@@ -42,7 +52,9 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
   }, []);
   return (
     <div
-      className="relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 border-[1px] border-gray-800/50 hover:border-gray-800"
+      className={`relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 border-[1px] border-gray-800/50 hover:border-gray-800 ${
+        activeChat?.chatId === chat.chatId && "bg-gray-800/50"
+      }`}
       onClick={handleClick}
     >
       <Image
@@ -67,7 +79,14 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
           </span>
         </div>
         <span className="w-[90%] text-nowrap text-ellipsis overflow-x-hidden text-sm text-muted-foreground">
-          {chat.msg.messageContent}
+          {chat?.chatId &&
+          feedContent[chat.chatId] &&
+          feedContent[chat.chatId]?.length &&
+          Number(feedContent[chat.chatId]?.length) > 0
+            ? feedContent[chat.chatId]![
+                Number(feedContent[chat.chatId]?.length) - 1
+              ]?.messageContent?.content
+            : chat.msg.messageContent}
         </span>
       </div>
       {/* <div className="absolute flex justify-center items-center bottom-2 right-4 bg-[#24c55b] w-5 h-5 rounded-full">

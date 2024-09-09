@@ -19,7 +19,7 @@ const ChatMessagesContainer = () => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const {chat, activeChat} = useAppContext();
+  const {chat, activeChat, streamMessage} = useAppContext();
   const {feedContent, setFeedContent} = chat as IChat;
   const {getChatHistory} = usePush();
 
@@ -58,6 +58,7 @@ const ChatMessagesContainer = () => {
     });
   };
   useEffect(() => {
+    // this is to set the messages when the chat is mounted
     if (!messages) setMessages(feedContent[activeChat?.chatId!] || null);
   }, [feedContent[activeChat?.chatId!]]);
 
@@ -86,6 +87,17 @@ const ChatMessagesContainer = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (
+      scrollRef.current &&
+      streamMessage &&
+      streamMessage?.chatId === activeChat?.chatId
+    ) {
+      setMessages(feedContent[activeChat?.chatId!] || null);
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [streamMessage]);
 
   const handleScroll = async () => {
     if (scrollRef.current) {

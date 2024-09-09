@@ -3,19 +3,18 @@ import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {trimAddress} from "@/lib/utils";
 import Image from "next/image";
-import React, {use, useEffect, useState} from "react";
-import {useEnsName} from "wagmi";
+import React, {useEffect, useState} from "react";
 
 const ChatInfoCard = () => {
   const {activeChat} = useAppContext();
-  const {resolveDomain} = usePush();
+  const {reverseResolveDomain} = usePush();
   const isAGroup = activeChat?.groupInformation?.chatId ? true : false;
   const [chatName, setChatName] = useState<string>();
   const fetchDomainName = async () => {
     if (!activeChat?.did || isAGroup) {
       return;
     }
-    const name = await resolveDomain(activeChat?.did.slice(7)!);
+    const name = await reverseResolveDomain(activeChat?.did.slice(7)!);
     if ("error" in name) {
       return;
     }

@@ -14,9 +14,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {useLogout} from "@privy-io/react-auth";
+import {IChat} from "@/types";
 
 const UserInfoCard = () => {
-  const {userInfo} = useAppContext();
+  const {
+    userInfo,
+    setAccount,
+    setActiveChat,
+    setPushStream,
+    setUserInfo,
+    chat,
+  } = useAppContext();
+  const {setFeedContent, setFeeds, setRequests} = chat as IChat;
   const {data: ensName} = useEnsName({
     address: userInfo?.did.slice(7)! as `0x${string}`,
   });
@@ -29,6 +38,13 @@ const UserInfoCard = () => {
       removeUserKeys();
       setPushUser(null);
       setIsUserAuthenticated(false);
+      setUserInfo(null);
+      setAccount(null);
+      setFeedContent({});
+      setFeeds(null);
+      setRequests(null);
+      setActiveChat(null);
+      setPushStream(null);
     },
   });
   return (

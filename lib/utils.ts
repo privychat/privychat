@@ -86,6 +86,14 @@ function assignColorsToParticipants(
 
   return participantColors;
 }
+
+const playNotification = () => {
+  const audio = new Audio("/notification.mp3");
+  if (audio) {
+    audio.currentTime = 0;
+    audio.play().catch((error) => console.error(error));
+  }
+};
 export {
   cn,
   saveUserKeys,
@@ -95,4 +103,5 @@ export {
   convertUnixTimestamp,
   convertUnixTimestampToHHMM,
   assignColorsToParticipants,
+  playNotification,
 };
