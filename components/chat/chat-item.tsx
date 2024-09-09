@@ -54,15 +54,15 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
         alt="avatar"
         width={50}
         height={50}
-        className="rounded-full w-12 h-12"
+        className="rounded-full w-10 h-10"
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <div className="flex flex-row justify-between">
-          <span className="text-md font-medium leading-none w-[80%] text-nowrap text-ellipsis overflow-x-hidden">
+          <span className="text-sm font-medium leading-none w-[75%] text-nowrap text-ellipsis overflow-x-hidden">
             {chatName}
           </span>
 
-          <span className="text-sm text-muted-foreground pl-1">
+          <span className="text-xs text-muted-foreground pl-1 w-[25%] text-right">
             {timestamp ?? ""}
           </span>
         </div>

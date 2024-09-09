@@ -60,7 +60,7 @@
 }
 /* Webkit (Safari/Chrome) */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 3px;
 }
 
 ::-webkit-scrollbar-track {
@@ -73,7 +73,7 @@
 
 /* Firefox */
 ::-moz-scrollbar {
-  width: 5px;
+  width: 3px;
 }
 
 ::-moz-scrollbar-track {

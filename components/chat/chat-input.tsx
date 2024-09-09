@@ -27,9 +27,9 @@ const ChatInput = () => {
   };
 
   return (
-    <div className="flex flex-row items-center justify-center h-16 rounded-md p-2 mx-2 bg-gray-600  bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20">
+    <div className="flex flex-row items-center justify-center h-14 rounded-md p-2 pt-1">
       <Input
-        className="w-full h-full bg-secondary rounded-full rounded-r-none text-md"
+        className="w-full h-full bg-secondary rounded-full rounded-r-none text-sm"
         placeholder="Type a message"
         autoFocus={true}
         value={input}

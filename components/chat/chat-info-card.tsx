@@ -34,7 +34,7 @@ const ChatInfoCard = () => {
     else setChatName(trimAddress(activeChat?.did.slice(7)!));
   }, [activeChat]);
   return (
-    <div className="rounded-md h-20 mx-2 bg-gray-600  bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 flex flex-row gap-4 items-center px-4">
+    <div className="rounded-md h-16 mx-2 bg-gray-600  bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 flex flex-row gap-4 items-center px-4">
       <Image
         src={
           isAGroup
@@ -44,10 +44,10 @@ const ChatInfoCard = () => {
         alt="avatar"
         width={50}
         height={50}
-        className="rounded-full w-12 h-12"
+        className="rounded-full w-10 h-10"
       />
       <div className="flex flex-col ">
-        <p className="text-md font-medium">{chatName}</p>
+        <p className="text-sm font-medium">{chatName}</p>
       </div>
     </div>
   );

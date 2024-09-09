@@ -10,7 +10,7 @@ const ChatSearch = () => {
     <section className=" bg-black rounded-md cursor-text p-2">
       <div className="relative" onClick={() => setIsFocused(true)}>
         <Input
-          className="text-muted-foreground pl-10 text-md h-[42px] z-10"
+          className="w-full h-9 bg-secondary rounded-full text-sm z-10 pl-10"
           onChange={(e) => setChatSearch(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -23,13 +23,13 @@ const ChatSearch = () => {
                 strings: ["vitalik.eth", "Push Alpha", "0x4e6D5959a2"],
                 autoStart: true,
                 loop: true,
-                wrapperClassName: "text-muted-foreground z-0",
+                wrapperClassName: "text-white text-sm z-0 text-white/30",
               }}
             />
           </div>
         )}
 
-        <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 w-[20px]" />
+        <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 w-[20px] text-white/30" />
       </div>
     </section>
   );

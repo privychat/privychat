@@ -27,7 +27,10 @@ function trimAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function convertUnixTimestamp(unixTimestamp: number): string | boolean {
+function convertUnixTimestamp(
+  unixTimestamp: number,
+  returnDay?: boolean
+): string | boolean {
   const currentDate = new Date();
   const timestampDate = new Date(unixTimestamp);
 
@@ -42,7 +45,11 @@ function convertUnixTimestamp(unixTimestamp: number): string | boolean {
     currentDate.getDate() === timestampDate.getDate();
 
   if (isSameDay) {
-    return convertUnixTimestampToHHMM(unixTimestamp); // Show HH:MM for current day
+    if (returnDay) {
+      return "Today";
+    } else {
+      return convertUnixTimestampToHHMM(unixTimestamp); // Show HH:MM for current day
+    }
   }
 
   const diffTime = Math.abs(currentDate.getTime() - timestampDate.getTime());

@@ -15,9 +15,9 @@ const ChatBadge = ({
   return (
     <Badge
       variant={`${activeChatTab === text ? "default" : "secondary"}`}
-      className={`text-[16px] font-light px-4 py-[4px] ${
+      className={`text-[13px] px-3 py-[4px] rounded-full font-light ${
         activeChatTab === text
-          ? "font-medium text-white hover:bg-primary cursor-default"
+          ? "text-white hover:bg-primary cursor-default"
           : "cursor-pointer"
       }`}
       onClick={handleTabChange}

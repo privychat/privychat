@@ -76,7 +76,7 @@ const ChatBubble = ({
       >
         {activeChat?.groupInformation?.chatId && !isSelfMessage && (
           <p
-            className={`px-4 pt-3 pb-0`}
+            className={`px-3 pt-3 pb-0 text-[12px]`}
             style={{
               color: titleColor,
             }}
@@ -86,7 +86,7 @@ const ChatBubble = ({
         )}
         {messageType === MESSAGE_TYPE.TEXT && (
           <p
-            className={`px-4 pt-3 text-wrap break-words text-white/75 whitespace-pre-wrap`}
+            className={`px-3 pt-3 text-wrap break-words text-white/75 whitespace-pre-wrap text-xs`}
           >
             {message}
           </p>
@@ -111,7 +111,7 @@ const ChatBubble = ({
           />
         )}
         <span
-          className={`text-xs mt-1  pb-1 pr-2 text-right text-muted-foreground ${
+          className={`text-[10px] mt-1  pb-1 pr-2 text-right text-muted-foreground ${
             !isSelfMessage ? "" : ""
           } ${
             messageType !== MESSAGE_TYPE.TEXT

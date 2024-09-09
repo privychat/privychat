@@ -5,7 +5,7 @@ import {IChat, IMessage} from "@/types";
 import React, {useEffect, useRef, useState} from "react";
 import ChatBubble from "./chat-bubble";
 import {assignColorsToParticipants, convertUnixTimestamp} from "@/lib/utils";
-import {Badge} from "../ui/badge";
+
 import {Skeleton} from "../ui/skeleton";
 import {FetchingMoreMessagesLoader} from "./chat-sidebar";
 
@@ -44,7 +44,6 @@ const ChatMessagesContainer = () => {
     return currentDate.toDateString() !== previousDate.toDateString();
   };
 
-  // Simulated API call to fetch older messages
   const fetchOlderMessages = async (): Promise<IMessage[]> => {
     return new Promise(async (resolve) => {
       const olderMessages = await getChatHistory({
@@ -135,7 +134,7 @@ const ChatMessagesContainer = () => {
               {showTimestampBadge(messages, i) && (
                 <div className="flex w-full justify-center items-center my-4">
                   <p className="w-fit text-xs px-2 py-1 bg-transparent text-gray-400">
-                    {convertUnixTimestamp(msg.timestamp)}
+                    {convertUnixTimestamp(msg.timestamp, true)}
                   </p>
                 </div>
               )}
