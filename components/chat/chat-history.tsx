@@ -58,8 +58,8 @@ const ChatMessagesContainer = () => {
     });
   };
   useEffect(() => {
-    setMessages(feedContent[activeChat?.chatId!] || null);
-  }, [activeChat]);
+    if (!messages) setMessages(feedContent[activeChat?.chatId!] || null);
+  }, [activeChat, feedContent[activeChat?.chatId!]]);
 
   useEffect(() => {
     if (messages) {
