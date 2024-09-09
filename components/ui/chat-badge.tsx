@@ -1,12 +1,9 @@
 import React from "react";
 import {Badge} from "./badge";
 import {useAppContext} from "@/hooks/use-app-context";
+import {CHAT_TYPE} from "@/constants";
 
-const ChatBadge = ({
-  text,
-}: {
-  text: "all" | "requests" | "pinned" | "archived" | "groups";
-}) => {
+const ChatBadge = ({text}: {text: CHAT_TYPE}) => {
   const {activeChatTab, setActiveChatTab, chat} = useAppContext();
   const handleTabChange = () => {
     setActiveChatTab(text);

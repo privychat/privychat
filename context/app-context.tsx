@@ -1,3 +1,4 @@
+import {CHAT_TYPE} from "@/constants";
 import {IAppContext} from "@/types";
 import {createContext} from "react";
 
@@ -19,7 +20,7 @@ const initialAppContext: IAppContext = {
   setActiveChat: () => {},
   chatSearch: "",
   setChatSearch: () => {},
-  activeChatTab: "all",
+  activeChatTab: CHAT_TYPE.ALL,
   setActiveChatTab: () => {},
 };
 

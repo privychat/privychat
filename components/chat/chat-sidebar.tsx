@@ -79,9 +79,9 @@ const ChatSidebar = () => {
     <div className="rounded-md h-20  flex flex-col flex-1 gap-2 py-1 bg-black border-[1px] border-gray-500 border-opacity-50">
       <ChatSearch />
       <div className="flex flex-row gap-2 px-2">
-        <ChatBadge text="all" />
-        <ChatBadge text="requests" />
-        <ChatBadge text="groups" />
+        <ChatBadge text={CHAT_TYPE.ALL} />
+        <ChatBadge text={CHAT_TYPE.REQUESTS} />
+        <ChatBadge text={CHAT_TYPE.GROUPS} />
       </div>
       {filteredChats && (
         <section className="w-full h-full flex flex-1 flex-col overflow-y-auto">
