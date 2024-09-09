@@ -9,14 +9,6 @@ const HeroSection = () => {
   const {login, ready} = usePrivy();
   return (
     <div className="min-h-screen w-full flex flex-col bg-background text-white">
-      {" "}
-      <div className="w-full flex items-center justify-center max-w-md mx-auto my-8">
-        <h2
-          className={`${caveat.className} text-4xl md:text-7xl text-pretty bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent`}
-        >
-          PrivyChat
-        </h2>
-      </div>
       <main className="flex-grow flex md:items-center pt-4">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col lg:flex-row items-center ">
           <div className="lg:w-1/2 lg:pr-8 flex flex-col justify-center">

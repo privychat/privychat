@@ -51,7 +51,10 @@ const UserInfoCard = () => {
           <EllipsisVertical className="cursor-pointer" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="border-gray-700">
-          <DropdownMenuLabel onClick={logout} className="cursor-pointer">
+          <DropdownMenuLabel
+            onClick={logout}
+            className="cursor-pointer font-light text-sm"
+          >
             Logout
           </DropdownMenuLabel>
         </DropdownMenuContent>

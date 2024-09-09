@@ -20,7 +20,7 @@ const ChatMessagesContainer = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const {chat, activeChat} = useAppContext();
-  const {feedContent} = chat as IChat;
+  const {feedContent, setFeedContent} = chat as IChat;
   const {getChatHistory} = usePush();
 
   const MESSAGES_PER_PAGE = 15;
@@ -59,7 +59,14 @@ const ChatMessagesContainer = () => {
   };
   useEffect(() => {
     if (!messages) setMessages(feedContent[activeChat?.chatId!] || null);
-  }, [activeChat, feedContent[activeChat?.chatId!]]);
+  }, [feedContent[activeChat?.chatId!]]);
+
+  useEffect(() => {
+    setMessages(feedContent[activeChat?.chatId!] || null);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [activeChat]);
 
   useEffect(() => {
     if (messages) {
@@ -95,6 +102,15 @@ const ChatMessagesContainer = () => {
           setStopPagination(true);
         } else {
           setMessages((prevMessages) => [...olderMessages, ...prevMessages!]);
+          setFeedContent((prevFeedContent) => {
+            return {
+              ...prevFeedContent,
+              [activeChat?.chatId!]: [
+                ...olderMessages,
+                ...prevFeedContent[activeChat?.chatId!]!,
+              ],
+            };
+          });
         }
 
         setLoading(false);
