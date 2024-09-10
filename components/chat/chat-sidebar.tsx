@@ -3,16 +3,17 @@ import ChatBadge from "../ui/chat-badge";
 import {useAppContext} from "@/hooks/use-app-context";
 import ChatItem from "./chat-item";
 import ChatSearch from "./chat-search";
-import {Separator} from "@/components/ui/separator";
 import ChatItemLoaderSkeleton from "../loaders/chat-item-loader-skeleton";
 import {IChat} from "@/types";
 import {CHAT_TYPE, SUPPORTED_DOMAINS} from "@/constants";
 import {IFeeds} from "@pushprotocol/restapi";
 import usePush from "@/hooks/use-push";
 import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
+import {isAddress} from "viem";
+import NewChatItem from "./new-chat-card";
 
 const ChatSidebar = () => {
-  const {activeChatTab, chatSearch, chat} = useAppContext();
+  const {activeChatTab, chatSearch, chat, account} = useAppContext();
   const {resolveDomain} = usePush();
   const {feeds, feedContent} = chat as IChat;
   const [fetchingDomain, setFetchingDomain] = useState(false);
@@ -26,39 +27,35 @@ const ChatSidebar = () => {
       }
       const search = chatSearch.toLowerCase();
 
-      if (SUPPORTED_DOMAINS.includes(search.split(".")[1])) {
-        setFetchingDomain(true);
-        // fetch address for the domain
-        const resolvedAddress = await resolveDomain(search);
+      // if (SUPPORTED_DOMAINS.includes(search.split(".")[1])) {
+      //   setFetchingDomain(true);
+      //   // fetch address for the domain
+      //   const resolvedAddress = await resolveDomain(search);
 
-        if (resolvedAddress === null) {
-          setFilteredChats([]);
-          return;
-        }
-        const filteredChats = feeds?.filter((chat) => {
-          if (
-            chat?.did?.slice(7)?.toLowerCase() == resolvedAddress.toLowerCase()
-          ) {
-            return chat;
-          }
-        });
-        setFilteredChats(filteredChats);
-        setFetchingDomain(false);
-      } else {
-        const updatedFilteredChats = feeds?.filter((chat) => {
-          if (chat.groupInformation?.groupName) {
-            return chat.groupInformation.groupName
-              .toLowerCase()
-              .includes(search.toLowerCase());
-          }
-          return chat.did
-            ?.slice(7)
+      //   if (resolvedAddress === null) {
+      //     setFilteredChats([]);
+      //     return;
+      //   }
+      //   const filteredChats = feeds?.filter((chat) => {
+      //     if (
+      //       chat?.did?.slice(7)?.toLowerCase() == resolvedAddress.toLowerCase()
+      //     ) {
+      //       return chat;
+      //     }
+      //   });
+      //   setFilteredChats(filteredChats);
+      //   setFetchingDomain(false);
+      // } else {
+      const updatedFilteredChats = feeds?.filter((chat) => {
+        if (chat.groupInformation?.groupName) {
+          return chat.groupInformation.groupName
             .toLowerCase()
             .includes(search.toLowerCase());
-        });
+        }
+        return chat.did?.slice(7).toLowerCase().includes(search.toLowerCase());
+      });
 
-        setFilteredChats(updatedFilteredChats);
-      }
+      setFilteredChats(updatedFilteredChats);
     };
     filterChats();
   }, [chatSearch]);
@@ -74,9 +71,12 @@ const ChatSidebar = () => {
       {filteredChats && (
         <section className="w-full h-full flex flex-1 flex-col overflow-y-auto">
           {fetchingDomain && <ChatItemLoaderSkeleton />}
-          {filteredChats.length === 0 && (
-            <div className="flex flex-col gap-2 items-center justify-center h-full">
-              <p className="text-gray-400 text-md">No chats found</p>
+          {filteredChats.length === 0 && chatSearch !== account && (
+            <div className="flex flex-col gap-2 items-center mt-2 h-full">
+              <p className="text-gray-400 text-md">
+                No chats found, Start a new chat
+              </p>
+              {isAddress(chatSearch) && <NewChatItem address={chatSearch} />}
             </div>
           )}
           {filteredChats.map((chat, index) => (
@@ -84,11 +84,12 @@ const ChatSidebar = () => {
           ))}
         </section>
       )}
-      {!filteredChats && activeChatTab === CHAT_TYPE.ALL && <FeedsTab />}
+
       {!filteredChats && activeChatTab === CHAT_TYPE.REQUESTS && (
         <RequestsTab />
       )}
       {!filteredChats && activeChatTab === CHAT_TYPE.GROUPS && <GroupsTab />}
+      {!filteredChats && activeChatTab === CHAT_TYPE.ALL && <FeedsTab />}
     </div>
   );
 };

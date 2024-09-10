@@ -71,7 +71,7 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <div className="flex flex-row justify-between">
-          <span className="text-sm font-medium leading-none w-[75%] text-nowrap text-ellipsis overflow-x-hidden">
+          <span className="text-sm font-medium  w-[75%] text-nowrap text-ellipsis overflow-x-hidden">
             {chatName}
           </span>
 
