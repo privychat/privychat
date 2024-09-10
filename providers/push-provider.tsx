@@ -170,6 +170,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
             allPagesFetched: true,
           },
         }));
+        setFeeds((prevChats) => [...(prevChats || []), ...chats]);
         return;
       }
       if (page === 1) {

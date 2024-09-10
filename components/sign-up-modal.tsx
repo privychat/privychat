@@ -2,24 +2,22 @@ import {useAppContext} from "@/hooks/use-app-context";
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {usePrivy} from "@privy-io/react-auth";
 import {CONSTANTS, PushAPI} from "@pushprotocol/restapi";
-import React from "react";
+import React, {useState} from "react";
 import {useWalletClient} from "wagmi";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {Button} from "./ui/button";
-import usePush from "@/hooks/use-push";
 import {IChat, IStreamMessage} from "@/types";
 import {STREAM_SOURCE} from "@/constants";
 
 const SignUpModal = () => {
   const {data: signer} = useWalletClient();
-  const {user: privyUser, ready, authenticated} = usePrivy();
+  const {user} = usePrivy();
   const {
     isUserAuthenticated,
     setAccount,
@@ -29,7 +27,7 @@ const SignUpModal = () => {
     chat,
   } = useAppContext();
   const {setFeedContent} = chat as IChat;
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
   const initializePushUser = async () => {
     if (isUserAuthenticated && signer) {
       try {
@@ -112,6 +110,7 @@ const SignUpModal = () => {
       }
     }
   };
+
   return (
     <section className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 bg-blur-lg bg-backdrop z-100">
       <Card className="flex flex-col items-center justify-center border-none w-[340px] z-100">
@@ -130,7 +129,13 @@ const SignUpModal = () => {
             className="w-full"
             disabled={loading}
           >
-            {loading ? "Sign in Wallet" : "Continue"}
+            {loading
+              ? `${
+                  user?.email?.address
+                    ? "Setting up your profile"
+                    : "Sign in Wallet"
+                }`
+              : "Continue"}
           </Button>
         </CardContent>
       </Card>
