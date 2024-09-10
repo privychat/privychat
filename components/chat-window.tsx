@@ -9,7 +9,7 @@ const caveat = Caveat({subsets: ["latin"]});
 const ChatWindow = () => {
   return (
     <>
-      <section className="hidden md:flex h-screen  w-screen  m-auto bg-muted/40 backdrop-blur-md border border-white/20  flex-row gap-2 p-2 overflow-y-hidden">
+      <section className="hidden md:flex h-screen  w-screen  m-auto bg-muted/40 backdrop-blur-md   flex-row gap-2 p-2 overflow-y-hidden">
         <section className="w-[40%] lg:w-[30%] 2xl:w-[25%] flex flex-col gap-1">
           <UserInfoCard />
           <ChatSidebar />

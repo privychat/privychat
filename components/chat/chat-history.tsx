@@ -7,7 +7,7 @@ import ChatBubble from "./chat-bubble";
 import {assignColorsToParticipants, convertUnixTimestamp} from "@/lib/utils";
 
 import {Skeleton} from "../ui/skeleton";
-import {FetchingMoreMessagesLoader} from "./chat-sidebar";
+import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 
 const ChatMessagesContainer = () => {
   const [messages, setMessages] = useState<IMessage[] | null>();
@@ -24,7 +24,6 @@ const ChatMessagesContainer = () => {
   const {getChatHistory} = usePush();
 
   const MESSAGES_PER_PAGE = 15;
-  const SCROLL_THRESHOLD = 100;
 
   // to get time per day
   const showTimestampBadge = (

@@ -4,11 +4,12 @@ import {useAppContext} from "@/hooks/use-app-context";
 import ChatItem from "./chat-item";
 import ChatSearch from "./chat-search";
 import {Separator} from "@/components/ui/separator";
-import ChatItemLoaderSkeleton from "./chat-item-loader-skeleton";
+import ChatItemLoaderSkeleton from "../loaders/chat-item-loader-skeleton";
 import {IChat} from "@/types";
 import {CHAT_TYPE, SUPPORTED_DOMAINS} from "@/constants";
 import {IFeeds} from "@pushprotocol/restapi";
 import usePush from "@/hooks/use-push";
+import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 
 const ChatSidebar = () => {
   const {activeChatTab, chatSearch, chat} = useAppContext();
@@ -188,32 +189,6 @@ const GroupsTab = () => {
       )}
       <FetchingMoreMessagesLoader showLoader={fetchingChats.feeds.fetching} />
     </section>
-  );
-};
-
-export const FetchingMoreMessagesLoader = ({
-  showLoader,
-  text,
-}: {
-  showLoader?: boolean;
-  text?: string;
-}) => {
-  return (
-    <div
-      className={`flex flex-row justify-center items-center gap-2 py-4 ${
-        showLoader ? "" : "opacity-0"
-      }`}
-    >
-      <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>
-      <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
-      <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
-      <p className="text-muted-foreground text-sm">
-        {text ?? "Fetching more chats"}
-      </p>
-      <div className="bg-primary w-2 h-2 animate-ping rounded-full"></div>
-      <div className="bg-primary w-1.5 h-1.5 animate-ping rounded-full"></div>
-      <div className="bg-primary w-1 h-1 animate-ping rounded-full"></div>
-    </div>
   );
 };
 
