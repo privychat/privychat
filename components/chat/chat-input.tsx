@@ -4,26 +4,61 @@ import {Button} from "../ui/button";
 import {Send} from "lucide-react";
 import usePush from "@/hooks/use-push";
 import {useAppContext} from "@/hooks/use-app-context";
-import {MESSAGE_TYPE} from "@/constants";
+import {MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
+import {generateRandomString} from "@/lib/utils";
+import {IChat} from "@/types";
 
 const ChatInput = () => {
   const [input, setInput] = useState<string>("");
   const {sendMessage} = usePush();
-  const {activeChat} = useAppContext();
+  const {activeChat, setStreamMessage, chat, account} = useAppContext();
+  const {setFeedContent} = chat as IChat;
   const handleSend = async () => {
-    if (input.trim() !== "") {
-      const startTime = new Date().getTime();
-      await sendMessage({
-        message: input,
-        chatId: activeChat?.chatId!,
+    if (input.trim().length === 0) return;
+    setFeedContent((prev) => {
+      const currentChatHistory = prev[activeChat?.chatId!] || [];
+      const randomId = generateRandomString(10); // not the right way to do it but for timebeing
+      return {
+        ...prev,
+        [activeChat?.chatId!]: [
+          ...currentChatHistory,
+          {
+            cid: randomId,
+            from: `eip155:${account}`,
+            to: activeChat?.chatId!,
+            timestamp: new Date().getTime(),
+            messageContent: {
+              content: input,
+            },
+            link: randomId,
+            type: MESSAGE_TYPE.TEXT,
+          },
+        ],
+      };
+    });
+    setStreamMessage({
+      origin: STREAM_SOURCE.SELF,
+      chatId: activeChat?.chatId!,
+      message: {
+        content: input,
         type: MESSAGE_TYPE.TEXT,
-      });
-      console.log(
-        "Time taken to send message",
-        new Date().getTime() - startTime + "ms"
-      );
-      setInput("");
-    }
+      },
+      from: `eip155:${localStorage.getItem("userAccount")}`,
+      to: [
+        activeChat?.groupInformation?.chatId!
+          ? activeChat?.groupInformation?.chatId!
+          : activeChat?.did!,
+      ],
+      timestamp: new Date().getTime(),
+    });
+
+    sendMessage({
+      message: input,
+      chatId: activeChat?.chatId!,
+      type: MESSAGE_TYPE.TEXT,
+    });
+
+    setInput("");
   };
 
   return (

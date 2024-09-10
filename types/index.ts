@@ -68,4 +68,12 @@ interface IAppContext {
   setActiveChatTab: React.Dispatch<React.SetStateAction<CHAT_TYPE>>;
 }
 
-export type {IAppContext, IChat, IMessage, IStreamMessage};
+interface IChatBubbleProps {
+  message: string;
+  sender: string;
+  timestamp: number;
+  titleColor?: string;
+  messageType: string;
+  reactions?: IMessage[];
+}
+export type {IAppContext, IChat, IMessage, IStreamMessage, IChatBubbleProps};

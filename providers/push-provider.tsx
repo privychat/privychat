@@ -14,7 +14,7 @@ import {
 import {createContext, useEffect, useRef, useState} from "react";
 import {useWalletClient} from "wagmi";
 import {AppContext} from "@/context/app-context";
-import {CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
+import {CHAT_TYPE, MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
 
 export default function AppProvider({children}: {children: React.ReactNode}) {
   // user account related stated
@@ -98,33 +98,36 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
       // Chat message received:
       stream.on(CONSTANTS.STREAM.CHAT, (stream: IStreamMessage) => {
-        if (stream.event !== "chat.message") return;
-        const {chatId, from, message, meta, timestamp, reference, origin} =
-          stream;
-        setFeedContent((prev) => {
-          const currentChatHistory = prev[chatId] || [];
-          return {
-            ...prev,
-            [chatId]: [
-              ...currentChatHistory,
-              {
-                cid: reference,
-                from: from,
-                to: chatId,
-                timestamp: Number(timestamp),
-                messageContent: {
-                  content: message.content,
+        if (
+          stream.event === "chat.message" &&
+          stream.origin !== STREAM_SOURCE.SELF
+        ) {
+          const {chatId, from, message, timestamp, reference, origin} = stream;
+          setFeedContent((prev) => {
+            const currentChatHistory = prev[chatId] || [];
+            return {
+              ...prev,
+              [chatId]: [
+                ...currentChatHistory,
+                {
+                  cid: reference,
+                  from: from,
+                  to: chatId,
+                  timestamp: Number(timestamp),
+                  messageContent: {
+                    content: message.content,
+                  },
+                  link: reference,
+                  type: message.type,
                 },
-                link: reference,
-                type: message.type,
-              },
-            ],
-          };
-        });
-        console.log("Stream Message", stream);
-        setStreamMessage(stream);
-        if (origin != "self") {
-          playNotification();
+              ],
+            };
+          });
+
+          setStreamMessage(stream);
+          if (origin != "self") {
+            playNotification();
+          }
         }
       });
       stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {

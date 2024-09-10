@@ -44,7 +44,6 @@ const UserInfoCard = () => {
       setFeeds(null);
       setRequests(null);
       setActiveChat(null);
-      setPushStream(null);
     },
   });
   return (
