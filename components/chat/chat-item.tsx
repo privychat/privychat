@@ -7,7 +7,13 @@ import {IFeeds} from "@pushprotocol/restapi";
 import Image from "next/image";
 import React, {useEffect, useState} from "react";
 
-const ChatItem = ({chat}: {chat: IFeeds}) => {
+const ChatItem = ({
+  chat,
+  openSheet,
+}: {
+  chat: IFeeds;
+  openSheet?: () => void;
+}) => {
   const {reverseResolveDomain} = usePush();
   const {setActiveChat, chat: chatContext, activeChat} = useAppContext();
   const {feedContent} = chatContext as IChat;
@@ -56,6 +62,10 @@ const ChatItem = ({chat}: {chat: IFeeds}) => {
       }`}
       onClick={() => {
         setActiveChat(chat);
+
+        if (openSheet) {
+          openSheet();
+        }
       }}
     >
       <Image

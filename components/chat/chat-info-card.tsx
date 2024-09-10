@@ -2,10 +2,11 @@ import {DEFAULT_PFP} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {trimAddress} from "@/lib/utils";
+import {ChevronLeft} from "lucide-react";
 import Image from "next/image";
 import React, {useEffect, useState} from "react";
 
-const ChatInfoCard = () => {
+const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   const {activeChat} = useAppContext();
   const {reverseResolveDomain} = usePush();
   const isAGroup = activeChat?.groupInformation?.chatId ? true : false;
@@ -33,7 +34,12 @@ const ChatInfoCard = () => {
     else setChatName(trimAddress(activeChat?.did.slice(7)!));
   }, [activeChat]);
   return (
-    <div className="rounded-md h-16 mx-2 bg-gray-600  bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 flex flex-row gap-4 items-center px-4">
+    <div className="flex flex-row gap-2 items-center h-14 mx-2 rounded-md p-2 mt-1 bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20">
+      {closeSheet && (
+        <span className={`md:hidden cursor-pointer`} onClick={closeSheet}>
+          <ChevronLeft color="white" size={30} className="p-0" />
+        </span>
+      )}
       <Image
         src={
           isAGroup
@@ -45,9 +51,9 @@ const ChatInfoCard = () => {
         height={50}
         className="rounded-full w-10 h-10"
       />
-      <div className="flex flex-col ">
-        <p className="text-sm font-medium">{chatName}</p>
-      </div>
+      <p className="text-sm font-medium text-ellipsis text-nowrap overflow-hidden">
+        {chatName}
+      </p>
     </div>
   );
 };

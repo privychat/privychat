@@ -4,13 +4,14 @@ import ChatInput from "./chat-input";
 import {useAppContext} from "@/hooks/use-app-context";
 import {LockClosedIcon} from "@radix-ui/react-icons";
 import ChatMessagesContainer from "./chat-history";
-const ChatMessageWindow = () => {
+const ChatMessageWindow = ({closeSheet}: {closeSheet?: () => void}) => {
   const {activeChat} = useAppContext();
   return (
     <>
       {activeChat ? (
         <div className="rounded-md h-full  flex flex-col flex-1 gap-2 py-1 bg-black border-[1px] border-gray-500 border-opacity-50">
-          <ChatInfoCard />
+          <ChatInfoCard closeSheet={closeSheet} />
+
           <ChatMessagesContainer />
           <ChatInput />
         </div>

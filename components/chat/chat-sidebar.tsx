@@ -12,7 +12,7 @@ import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 import {isAddress} from "viem";
 import NewChatItem from "./new-chat-card";
 
-const ChatSidebar = () => {
+const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
   const {activeChatTab, chatSearch, chat, account} = useAppContext();
   const {resolveDomain} = usePush();
   const {feeds, feedContent} = chat as IChat;
@@ -86,15 +86,19 @@ const ChatSidebar = () => {
       )}
 
       {!filteredChats && activeChatTab === CHAT_TYPE.REQUESTS && (
-        <RequestsTab />
+        <RequestsTab openSheet={openSheet} />
       )}
-      {!filteredChats && activeChatTab === CHAT_TYPE.GROUPS && <GroupsTab />}
-      {!filteredChats && activeChatTab === CHAT_TYPE.ALL && <FeedsTab />}
+      {!filteredChats && activeChatTab === CHAT_TYPE.GROUPS && (
+        <GroupsTab openSheet={openSheet} />
+      )}
+      {!filteredChats && activeChatTab === CHAT_TYPE.ALL && (
+        <FeedsTab openSheet={openSheet} />
+      )}
     </div>
   );
 };
 
-const FeedsTab = () => {
+const FeedsTab = ({openSheet}: {openSheet?: () => void}) => {
   const {chat} = useAppContext();
 
   const {feeds, fetchingChats} = chat as IChat;
@@ -110,8 +114,13 @@ const FeedsTab = () => {
       )}
       {chat &&
         feeds &&
-        feeds.map((chat, index) => <ChatItem key={index} chat={chat} />)}
-
+        feeds.map((chat, index) => (
+          <ChatItem
+            key={index}
+            chat={chat}
+            {...(openSheet ? {openSheet: openSheet} : {})}
+          />
+        ))}
       {chat && feeds && feeds.length === 0 && (
         <div className="flex flex-col gap-2 items-center justify-center h-full">
           <p className="text-gray-400 text-md">Start a new conversation</p>
@@ -124,7 +133,7 @@ const FeedsTab = () => {
     </section>
   );
 };
-const RequestsTab = () => {
+const RequestsTab = ({openSheet}: {openSheet?: () => void}) => {
   const {chat} = useAppContext();
 
   const {requests, fetchingChats} = chat as IChat;
@@ -140,7 +149,13 @@ const RequestsTab = () => {
       )}
       {chat &&
         requests &&
-        requests.map((chat, index) => <ChatItem key={index} chat={chat} />)}
+        requests.map((chat, index) => (
+          <ChatItem
+            key={index}
+            chat={chat}
+            {...(openSheet ? {openSheet: openSheet} : {})}
+          />
+        ))}
       {chat && requests && requests.length === 0 && (
         <div className="flex flex-col gap-2 items-center justify-center h-full">
           <p className="text-gray-400 text-md">No pending requests</p>
@@ -155,7 +170,7 @@ const RequestsTab = () => {
   );
 };
 
-const GroupsTab = () => {
+const GroupsTab = ({openSheet}: {openSheet?: () => void}) => {
   const {chat} = useAppContext();
 
   const {feeds, fetchingChats} = chat as IChat;
@@ -173,7 +188,13 @@ const GroupsTab = () => {
         feeds &&
         feeds
           .filter((chat) => chat.groupInformation?.chatId)
-          .map((chat, index) => <ChatItem key={index} chat={chat} />)}
+          .map((chat, index) => (
+            <ChatItem
+              key={index}
+              chat={chat}
+              {...(openSheet ? {openSheet: openSheet} : {})}
+            />
+          ))}
       {chat && feeds && feeds.length === 0 && (
         <div className="flex flex-col gap-2 items-center justify-center h-full">
           <p className="text-gray-400 text-md">No active group chats</p>
