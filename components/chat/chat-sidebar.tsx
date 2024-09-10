@@ -63,19 +63,6 @@ const ChatSidebar = () => {
     filterChats();
   }, [chatSearch]);
 
-  // whenever there is an stream message, sort the sidebar chats
-  // useEffect(() => {
-  //   const sortChats = () => {
-  //     const sortedChats = feeds?.sort((a, b) => {
-  //       if (a.msg.timestamp && b.msg.timestamp) {
-  //         return b.msg.timestamp - a.msg.timestamp;
-  //       }
-  //       return 0;
-  //     });
-  //     console.log("sorted chats", sortedChats);
-  //   };
-  //   sortChats();
-  // }, [feedContent]);
   return (
     <div className="rounded-md h-20  flex flex-col flex-1 gap-2 py-1 bg-black border-[1px] border-gray-500 border-opacity-50">
       <ChatSearch />
@@ -107,7 +94,7 @@ const ChatSidebar = () => {
 };
 
 const FeedsTab = () => {
-  const {chat, chatSearch} = useAppContext();
+  const {chat} = useAppContext();
 
   const {feeds, fetchingChats} = chat as IChat;
 
@@ -130,7 +117,9 @@ const FeedsTab = () => {
         </div>
       )}
 
-      <FetchingMoreMessagesLoader showLoader={fetchingChats.feeds.fetching} />
+      {chat && feeds && (
+        <FetchingMoreMessagesLoader showLoader={fetchingChats.feeds.fetching} />
+      )}
     </section>
   );
 };
@@ -156,9 +145,11 @@ const RequestsTab = () => {
           <p className="text-gray-400 text-md">No pending requests</p>
         </div>
       )}
-      <FetchingMoreMessagesLoader
-        showLoader={fetchingChats.requests.fetching}
-      />
+      {chat && requests && (
+        <FetchingMoreMessagesLoader
+          showLoader={fetchingChats.requests.fetching}
+        />
+      )}
     </section>
   );
 };
@@ -187,7 +178,9 @@ const GroupsTab = () => {
           <p className="text-gray-400 text-md">No active group chats</p>
         </div>
       )}
-      <FetchingMoreMessagesLoader showLoader={fetchingChats.feeds.fetching} />
+      {chat && feeds && (
+        <FetchingMoreMessagesLoader showLoader={fetchingChats.feeds.fetching} />
+      )}
     </section>
   );
 };

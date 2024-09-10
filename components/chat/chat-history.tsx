@@ -8,8 +8,6 @@ import {assignColorsToParticipants, convertUnixTimestamp} from "@/lib/utils";
 import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 import ChatHistoryLoader from "../loaders/chat-history-loader";
 
-const MESSAGES_PER_PAGE = 15;
-
 const ChatMessagesContainer: React.FC = () => {
   const [messages, setMessages] = useState<IMessage[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -17,6 +15,7 @@ const ChatMessagesContainer: React.FC = () => {
   const [groupParticipants, setGroupParticipants] = useState<{
     [key: string]: string;
   }>({});
+  const [isNearBottom, setIsNearBottom] = useState(true);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const {chat, activeChat, streamMessage} = useAppContext();
@@ -59,12 +58,9 @@ const ChatMessagesContainer: React.FC = () => {
     if (!scrollRef.current || loading || stopPagination) return;
 
     const {scrollTop, scrollHeight, clientHeight} = scrollRef.current;
-    if (
-      scrollTop !== 0 ||
-      !messages ||
-      messages.length % MESSAGES_PER_PAGE !== 0
-    )
-      return;
+    setIsNearBottom(scrollHeight - scrollTop - clientHeight < 100);
+
+    if (scrollTop !== 0 || !messages) return;
 
     setLoading(true);
     const oldScrollHeight = scrollHeight;
@@ -111,8 +107,16 @@ const ChatMessagesContainer: React.FC = () => {
 
   useEffect(() => {
     setMessages(feedContent[activeChat?.chatId!] || null);
-    scrollToBottom();
-  }, [activeChat, feedContent[activeChat?.chatId!], scrollToBottom]);
+
+    if (isNearBottom) {
+      scrollToBottom();
+    }
+  }, [
+    activeChat,
+    feedContent[activeChat?.chatId!],
+    scrollToBottom,
+    isNearBottom,
+  ]);
 
   useEffect(() => {
     if (messages) {
@@ -121,10 +125,10 @@ const ChatMessagesContainer: React.FC = () => {
       const participantsColors = assignColorsToParticipants(uniqueParticipants);
       setGroupParticipants(participantsColors);
     }
-    if (messages && messages.length === MESSAGES_PER_PAGE) {
+    if (isNearBottom) {
       scrollToBottom();
     }
-  }, [messages, scrollToBottom]);
+  }, [messages, scrollToBottom, isNearBottom]);
 
   return (
     <div

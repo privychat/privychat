@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Input} from "../ui/input";
 import {Button} from "../ui/button";
 import {Send} from "lucide-react";
@@ -10,6 +10,8 @@ import {IChat} from "@/types";
 
 const ChatInput = () => {
   const [input, setInput] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const {sendMessage} = usePush();
   const {activeChat, setStreamMessage, chat, account} = useAppContext();
   const {setFeedContent} = chat as IChat;
@@ -61,12 +63,16 @@ const ChatInput = () => {
     setInput("");
   };
 
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [activeChat]);
+
   return (
     <div className="flex flex-row items-center justify-center h-14 rounded-md p-2 pt-1">
       <Input
+        ref={inputRef}
         className="w-full h-full bg-secondary rounded-full rounded-r-none text-sm"
         placeholder="Type a message"
-        autoFocus={true}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyPress={(e) => {
