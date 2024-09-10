@@ -1,190 +1,296 @@
 "use client";
-import {usePrivy, useWallets} from "@privy-io/react-auth";
-import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
-import {createContext, useContext, useEffect, useRef, useState} from "react";
-import {useAccount, useWalletClient} from "wagmi";
 
-interface UserContextType {
-  pushUser: PushAPI | undefined;
-  setPushUser: (user: PushAPI | undefined) => void;
-  userInfo: IUser | undefined;
-  setUserInfo: (userInfo: IUser | undefined) => void;
-  userChatRequests: IFeeds[] | undefined;
-  setUserChatRequests: (requests: IFeeds[] | undefined) => void;
-  userChats: IFeeds[] | undefined;
-  setUserChats: (chats: IFeeds[] | undefined) => void;
+import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
+import {IAppContext, IChat, IMessage, IStreamMessage} from "@/types";
+import {usePrivy} from "@privy-io/react-auth";
+import {
+  CONSTANTS,
+  IFeeds,
+  IUser,
+  PushAPI,
+  TYPES,
+  user,
+} from "@pushprotocol/restapi";
+import {createContext, useEffect, useRef, useState} from "react";
+import {useWalletClient} from "wagmi";
+import {AppContext} from "@/context/app-context";
+import {CHAT_TYPE, MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
 
-  pushStream: any;
-  latestMessage: any;
-  setLatestMessage: (message: any) => void;
-}
+export default function AppProvider({children}: {children: React.ReactNode}) {
+  // user account related stated
+  const [pushUser, setPushUser] = useState<PushAPI | null>(null);
+  const [userInfo, setUserInfo] = useState<IUser | null>(null);
+  const [account, setAccount] = useState<string | null>(null);
+  const [isUserAuthenticated, setIsUserAuthenticated] =
+    useState<boolean>(false);
+  // chat related states
+  const [feeds, setFeeds] = useState<IFeeds[] | null>(null);
+  const [requests, setRequests] = useState<IFeeds[] | null>(null);
+  const [fetchingChats, setFetchingChats] = useState<{
+    feeds: {
+      allPagesFetched: boolean;
+      fetching: boolean;
+    };
+    requests: {
+      allPagesFetched: boolean;
+      fetching: boolean;
+    };
+  }>({
+    feeds: {
+      allPagesFetched: false,
+      fetching: false,
+    },
+    requests: {
+      allPagesFetched: false,
+      fetching: false,
+    },
+  });
 
-const defaultContextValue: UserContextType = {
-  pushUser: undefined,
-  setPushUser: () => {},
-  userInfo: undefined,
-  setUserInfo: () => {},
-  userChatRequests: undefined,
-  setUserChatRequests: () => {},
-  userChats: undefined,
-  setUserChats: () => {},
+  // stores the last 15 messages for each chat
+  const [feedContent, setFeedContent] = useState<{
+    [key: string]: IMessage[] | null;
+  }>({});
 
-  pushStream: undefined,
-  latestMessage: undefined,
-  setLatestMessage: () => {},
-};
+  // incoming stream message from socket
+  const [streamMessage, setStreamMessage] = useState<any | null>(null);
 
-export const UserContext = createContext<UserContextType>(defaultContextValue);
+  // stream ref
+  const pushStream = useRef<any | null>(null);
 
-export const usePushUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("usePushUser must be used within a PushUserProvider");
-  }
-  return context;
-};
+  // used to store the active chat, search query and active chat tab
+  const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
+  const [chatSearch, setChatSearch] = useState<string>("");
+  const [activeChatTab, setActiveChatTab] = useState<CHAT_TYPE>(CHAT_TYPE.ALL);
 
-export default function PushUserProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+  // signer
   const {data: signer} = useWalletClient();
-  const {authenticated, user: privyUser} = usePrivy();
-  const [pushUser, setPushUser] = useState<PushAPI | undefined>();
-  const pushStream = useRef<any>(undefined);
-  const [latestMessage, setLatestMessage] = useState<any>();
-  const [userInfo, setUserInfo] = useState<IUser | undefined>();
-  const [userChats, setUserChats] = useState<IFeeds[] | undefined>();
-  const [userChatRequests, setUserChatRequests] = useState<
-    IFeeds[] | undefined
-  >();
-  const {wallets} = useWallets();
+  // privy user
+  const {user: privyUser, ready, authenticated} = usePrivy();
 
-  const initializeUser = async () => {
-    const decryptedPgpPvtKey = localStorage.getItem("userKey");
-    const userAccount = localStorage.getItem("userAccount");
-    if (!decryptedPgpPvtKey && !userAccount && !signer) return;
-
-    if (wallets[0]?.address !== signer?.account?.address) return;
-    const user = await PushAPI.initialize(signer, {
-      env: CONSTANTS.ENV.PROD,
-      ...(decryptedPgpPvtKey && {decryptedPGPPrivateKey: decryptedPgpPvtKey}),
-      ...(userAccount && {account: userAccount}),
-    });
-
-    localStorage.setItem("userKey", user.decryptedPgpPvtKey!);
-    localStorage.setItem("userAccount", user.account!);
-
-    setPushUser(user);
-
-    const [userInfo, userChats, userChatRequests] = await Promise.all([
-      user.info(),
-      getChats(),
-      getRequests(),
-    ]);
-
-    setUserInfo(userInfo);
-    if (pushStream.current && pushStream.current.disconnected === false) return;
-
-    const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
-    stream.on(CONSTANTS.STREAM.CONNECT, async (a) => {
-      console.log("Stream Connected");
-    });
-    stream.on(CONSTANTS.STREAM.DISCONNECT, async (a) => {
-      console.log("Stream Disconnected");
-    });
-
-    // Chat message received:
-    stream.on(CONSTANTS.STREAM.CHAT, (message) => {
-      console.log("Chat", message);
-      setLatestMessage(message);
-    });
-    stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
-      console.log("Chat Ops", message);
-    });
-
-    stream.connect();
-
-    pushStream.current = stream;
-  };
-
-  const getChats = async () => {
-    if (!pushUser) return;
-    const chats = await pushUser.chat.list("CHATS", {
-      limit: 10,
-    });
-
-    if (!chats) return;
-    setUserChats(chats);
-
-    let pagesAvailable = true;
-    let page = 1;
-    while (pagesAvailable) {
-      const olderChats = await pushUser.chat.list("CHATS", {
-        limit: 30,
-        page,
+  const initializePushUser = async () => {
+    try {
+      const {userAccount, userKey} = getUserKeys();
+      if (!userAccount && !userKey) return;
+      const user = await PushAPI.initialize(signer, {
+        env: CONSTANTS.ENV.PROD,
+        ...(userKey && {decryptedPGPPrivateKey: userKey}),
+        ...(userAccount && {account: userAccount}),
       });
-      if (!olderChats) {
-        pagesAvailable = false;
-        break;
-      } else {
-        if (page > 1) setUserChats((prev) => [...(prev ?? []), ...olderChats]);
-        else setUserChats(olderChats);
-        page++;
+
+      if (!user.decryptedPgpPvtKey) {
+        return;
       }
+      saveUserKeys(user.decryptedPgpPvtKey!, user.account);
+      setPushUser(user);
+      setAccount(user.account);
+
+      if (pushStream.current && pushStream.current.disconnected === false) {
+        return;
+      }
+
+      const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
+      stream.on(CONSTANTS.STREAM.CONNECT, async (a) => {
+        console.log("Stream Connected");
+      });
+      stream.on(CONSTANTS.STREAM.DISCONNECT, async (a) => {
+        console.log("Stream Disconnected");
+      });
+
+      // Chat message received:
+      stream.on(CONSTANTS.STREAM.CHAT, (stream: IStreamMessage) => {
+        if (
+          stream.event === "chat.message" &&
+          stream.origin !== STREAM_SOURCE.SELF
+        ) {
+          const {chatId, from, message, timestamp, reference, origin} = stream;
+          setFeedContent((prev) => {
+            const currentChatHistory = prev[chatId] || [];
+            return {
+              ...prev,
+              [chatId]: [
+                ...currentChatHistory,
+                {
+                  cid: reference,
+                  from: from,
+                  to: chatId,
+                  timestamp: Number(timestamp),
+                  messageContent: {
+                    content: message.content,
+                  },
+                  link: reference,
+                  type: message.type,
+                },
+              ],
+            };
+          });
+
+          setStreamMessage(stream);
+          if (origin != "self") {
+            playNotification();
+          }
+        }
+      });
+      stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
+        console.log("Chat Ops", message);
+      });
+
+      stream.connect();
+
+      pushStream.current = stream;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const getUserChats = async (page: number = 1) => {
+    setFetchingChats((prev) => ({
+      ...prev,
+      feeds: {
+        ...prev.feeds,
+        fetching: true,
+      },
+    }));
+    const chats = await pushUser?.chat.list("CHATS", {
+      limit: 10,
+      page,
+    });
+
+    if (chats) {
+      setFetchingChats((prev) => ({
+        ...prev,
+        feeds: {
+          ...prev.feeds,
+          fetching: false,
+        },
+      }));
+      if (chats.length === 0) {
+        setFetchingChats((prev) => ({
+          ...prev,
+          feeds: {
+            ...prev.feeds,
+            allPagesFetched: true,
+          },
+        }));
+        setFeeds((prevChats) => [...(prevChats || []), ...chats]);
+        return;
+      }
+      if (page === 1) {
+        setFeeds(chats);
+      } else setFeeds((prevChats) => [...(prevChats || []), ...chats]);
+
+      await getUserChats(page + 1);
     }
   };
 
-  const getRequests = async () => {
-    if (!pushUser) return;
-    const requests = await pushUser.chat.list("REQUESTS", {
+  const getUserRequests = async () => {
+    const requests = await pushUser?.chat.list("REQUESTS", {
       limit: 10,
     });
-
-    if (!requests) return;
-    setUserChatRequests(requests);
+    if (requests) {
+      setRequests(requests);
+      await getMessagesForLatestChats(requests);
+    }
   };
+
+  const getUserDetails = async () => {
+    const user = await pushUser?.info();
+    if (user) {
+      setUserInfo(user);
+    }
+  };
+
+  const getMessagesForLatestChats = async (feeds: IFeeds[]) => {
+    const historyPromises = feeds.map(async (feed) => {
+      const history = await pushUser?.chat.history(feed.chatId!, {
+        limit: 15,
+      });
+
+      if (history) {
+        const historyFormatted: IMessage[] = history
+          .map((msg) => {
+            return {
+              cid: msg.cid,
+              to: msg.toDID,
+              from: msg.fromDID,
+              type: msg.messageType,
+              messageContent: {
+                content: msg.messageObj?.content ?? "",
+                ...(msg.messageObj?.reference && {
+                  reference: msg.messageObj.reference,
+                }),
+              },
+              timestamp: msg.timestamp,
+              link: msg.link,
+            };
+          })
+          .reverse();
+
+        setFeedContent((prev) => ({
+          ...prev,
+          [feed.chatId!]: historyFormatted,
+        }));
+      }
+    });
+
+    await Promise.all(historyPromises);
+  };
+
   useEffect(() => {
-    if (pushUser || !authenticated) return;
-
-    initializeUser();
-
-    return () => {
-      console.log("disconnecting stream");
-      pushStream?.current?.disconnect();
-    };
-  }, [privyUser, signer]);
-
+    const newFeeds = feeds?.filter(
+      (feed) => !(feed.chatId! in Object.keys(feedContent))
+    );
+    getMessagesForLatestChats(newFeeds || []);
+  }, [feeds]);
   useEffect(() => {
-    if (!pushUser) return;
-    getChats();
-    getRequests();
+    if (pushUser) {
+      Promise.all([getUserChats(), getUserRequests(), getUserDetails()]);
+    }
   }, [pushUser]);
-
   useEffect(() => {
-    if (!pushUser) return;
-    if (latestMessage.origin === "internal") return;
-    getChats();
-    getRequests();
-  }, [latestMessage]);
+    const localUser = getUserKeys();
+
+    if (
+      (localUser.userAccount && localUser.userKey) ||
+      (authenticated && signer)
+    ) {
+      setIsUserAuthenticated(true);
+    }
+  }, [signer, authenticated, ready, privyUser]);
+  useEffect(() => {
+    initializePushUser();
+  }, []);
   return (
-    <UserContext.Provider
+    <AppContext.Provider
       value={{
+        isUserAuthenticated,
+        setIsUserAuthenticated,
+        account,
+        setAccount,
         pushUser,
         setPushUser,
         userInfo,
         setUserInfo,
-        userChatRequests,
-        setUserChatRequests,
-        userChats,
-        setUserChats,
+        chat: {
+          feeds,
+          setFeeds,
+          requests,
+          setRequests,
+          feedContent,
+          setFeedContent,
+          fetchingChats,
+        },
         pushStream,
-        latestMessage,
-        setLatestMessage,
+        setPushStream: pushStream.current,
+        streamMessage,
+        setStreamMessage,
+        activeChat,
+        setActiveChat,
+        chatSearch,
+        setChatSearch,
+        activeChatTab,
+        setActiveChatTab,
       }}
     >
       {children}
-    </UserContext.Provider>
+    </AppContext.Provider>
   );
 }

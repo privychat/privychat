@@ -1,39 +1,38 @@
-"use client";
-import React from "react";
-import ThemeToggleSwitch from "./theme-toggle-switch";
 import Image from "next/image";
-import {useTheme} from "next-themes";
+import React from "react";
+import {ThemeToggleSwitch} from "./theme-toggle-switch";
+import {useLogout, usePrivy} from "@privy-io/react-auth";
 import {Button} from "./button";
-import {usePrivy} from "@privy-io/react-auth";
+import {removeUserKeys} from "@/lib/utils";
+import {useDisconnect} from "wagmi";
+import {useAppContext} from "@/hooks/use-app-context";
 
 const Navbar = () => {
-  const {theme} = useTheme();
-  const {login, authenticated, logout, ready} = usePrivy();
+  const {authenticated} = usePrivy();
+
+  const {disconnect} = useDisconnect();
+  const {isUserAuthenticated, pushUser, setIsUserAuthenticated, setPushUser} =
+    useAppContext();
+  const {logout} = useLogout({
+    onSuccess: () => {
+      disconnect();
+      removeUserKeys();
+      setPushUser(null);
+      setIsUserAuthenticated(false);
+    },
+  });
   return (
-    <div className="flex flex-row justify-between p-6">
-      <Image
-        src={theme === "light" ? "/push_logo_dark.png" : "/push_logo_light.png"}
-        alt="Logo"
-        width={100}
-        height={100}
-      />
-      <div className="flex flex-row items-center gap-4">
+    <nav className="w-full flex flex-row justify-between items-center p-6">
+      <Image src="/logo.png" alt="logo" width={100} height={100} />
+      <div className="flex flex-row gap-2">
         <ThemeToggleSwitch />
-        {/* <Button
-          variant="default"
-          onClick={() => {
-            if (authenticated) {
-              logout();
-            } else {
-              login();
-            }
-          }}
-          disabled={!ready}
-        >
-          {authenticated ? "Logout" : "Login"}
-        </Button> */}
+        {authenticated && (
+          <Button onClick={logout} variant={"secondary"}>
+            Logout
+          </Button>
+        )}
       </div>
-    </div>
+    </nav>
   );
 };
 

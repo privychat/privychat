@@ -1,30 +1,36 @@
-# Privy Chat - Chat Client Powered by Push Protocol
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-This is an open-source client for Push Chat. We welcome contributions from anyone interested in improving this project. You can contribute by checking the issues on our GitHub repository and raising a Pull Request (PR) with your proposed changes.
+## Getting Started
 
-## Features
+First, run the development server:
 
-- Wallet to Wallet Messaging
-- ENS name resolution
-- Support for Farcaster Frames & Open Frames
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## How to Contribute
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-1. Fork the repository.
-2. Clone the forked repository to your local machine.
-3. Make your changes.
-4. Push your changes to your forked repository.
-5. Create a Pull Request in the original repository, comparing changes from your forked repository.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## How to Run the App
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-Follow the steps below to run the app on your local machine:
+## Learn More
 
-1. Clone the repository to your local machine.
-2. Navigate to the project directory.
-3. Install the required dependencies by running `npm install` or `yarn install` or `pnpm install`.
-4. Start the app by running `npm run dev` or `yarn dev` or `pnpm dev`.
+To learn more about Next.js, take a look at the following resources:
 
-## License
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-This project is open source under the MIT license.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
