@@ -46,6 +46,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     },
   });
 
+  const [lastFetchedChat, setLastFetchedChat] = useState<number | null>(null);
+
   // stores the last 15 messages for each chat
   const [feedContent, setFeedContent] = useState<{
     [key: string]: IMessage[] | null;
@@ -235,9 +237,15 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   };
 
   useEffect(() => {
-    const newFeeds = feeds?.filter(
-      (feed) => !(feed.chatId! in Object.keys(feedContent))
-    );
+    let newFeeds: IFeeds[] | undefined;
+    if (!lastFetchedChat && feeds) {
+      setLastFetchedChat(1);
+      newFeeds = feeds.slice(0, 10);
+    } else if (lastFetchedChat && feeds) {
+      newFeeds = feeds.slice(lastFetchedChat * 10, lastFetchedChat * 10 + 10);
+      setLastFetchedChat(lastFetchedChat + 1);
+    }
+
     getMessagesForLatestChats(newFeeds || []);
   }, [feeds]);
   useEffect(() => {
