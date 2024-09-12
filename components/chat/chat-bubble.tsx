@@ -7,6 +7,7 @@ import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {convertUnixTimestampToHHMM, trimAddress} from "@/lib/utils";
 import {IChatBubbleProps, IMessage} from "@/types";
+import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog";
 
 const ChatBubble: React.FC<IChatBubbleProps> = ({
   message,
@@ -77,13 +78,26 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
             ? JSON.parse(message).content
             : message;
         return (
-          <Image
-            src={src}
-            alt="image"
-            width={400}
-            height={300}
-            className="rounded-md w-[400px] h-auto pt-2"
-          />
+          <Dialog>
+            <DialogTrigger asChild>
+              <Image
+                src={src}
+                alt="image"
+                width={400}
+                height={300}
+                className="rounded-md w-[400px] h-auto pt-2 cursor-pointer"
+              />
+            </DialogTrigger>
+            <DialogContent className="border-none w-[70vw] p-0  bg-transparent">
+              <Image
+                src={src}
+                alt="image"
+                width={1200}
+                height={1200}
+                className=" w-full h-auto pt-2 rounded-md"
+              />
+            </DialogContent>
+          </Dialog>
         );
       default:
         return null;
