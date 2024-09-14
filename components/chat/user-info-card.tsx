@@ -8,15 +8,14 @@ import {EllipsisVertical} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {useLogout} from "@privy-io/react-auth";
+import {usePrivy} from "@privy-io/react-auth";
 import {IChat} from "@/types";
 
 const UserInfoCard = () => {
+  const {authenticated, logout} = usePrivy();
   const {
     userInfo,
     setAccount,
@@ -32,20 +31,25 @@ const UserInfoCard = () => {
 
   const {disconnect} = useDisconnect();
   const {setIsUserAuthenticated, setPushUser} = useAppContext();
-  const {logout} = useLogout({
-    onSuccess: () => {
-      disconnect();
-      removeUserKeys();
-      setPushUser(null);
-      setIsUserAuthenticated(false);
-      setUserInfo(null);
-      setAccount(null);
-      setFeedContent({});
-      setFeeds(null);
-      setRequests(null);
-      setActiveChat(null);
-    },
-  });
+  const resetAppState = () => {
+    setPushUser(null);
+    setIsUserAuthenticated(false);
+    setUserInfo(null);
+    setAccount(null);
+    setFeedContent({});
+    setFeeds(null);
+    setRequests(null);
+    setActiveChat(null);
+  };
+
+  const handleLogout = () => {
+    if (authenticated) {
+      logout();
+    }
+    disconnect();
+    removeUserKeys();
+    resetAppState();
+  };
   return (
     <div className="rounded-md h-16 bg-black/80 border-[1px] border-gray-500 border-opacity-50  flex flex-row gap-2 items-center px-4">
       <Image
@@ -67,7 +71,7 @@ const UserInfoCard = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="border-gray-700">
           <DropdownMenuLabel
-            onClick={logout}
+            onClick={handleLogout}
             className="cursor-pointer font-light text-sm"
           >
             Logout
