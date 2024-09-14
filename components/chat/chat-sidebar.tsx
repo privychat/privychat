@@ -69,7 +69,7 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
   }, [chatSearch]);
 
   return (
-    <div className="rounded-md h-20  flex flex-col flex-1 gap-2 py-1 bg-black border-[1px] border-gray-500 border-opacity-50">
+    <div className="rounded-md h-20  flex flex-col flex-1 gap-2 py-1 bg-black md:border-[1px] border-gray-500 border-opacity-50">
       <ChatSearch />
       <div className="flex flex-row gap-2 px-2">
         <ChatBadge text={CHAT_TYPE.ALL} />

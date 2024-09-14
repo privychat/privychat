@@ -21,16 +21,19 @@ const ChatWindow = () => {
         </section>
       </section>
 
-      <section className="md:hidden flex h-screen  w-screen  m-auto bg-muted/40 backdrop-blur-md  flex-row gap-2 p-2 overflow-y-hidden">
+      <section className="md:hidden flex h-screen  w-screen  m-auto bg-muted/40 backdrop-blur-md overflow-hidden">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <section className="w-full flex flex-col gap-1">
+          <section className="w-full flex flex-col">
+            <div className=" bg-black scroll-m-20 px-4 pt-4 ">
+              <h3 className="text-2xl font-semibold tracking-tight"> Chats</h3>
+            </div>
             <ChatSidebar
               openSheet={() => {
                 setIsOpen(true);
               }}
             />
           </section>
-          <SheetContent className="w-screen border-none p-2">
+          <SheetContent className="w-screen border-none p-0">
             <ChatMessageWindow
               closeSheet={() => {
                 setIsOpen(false);
