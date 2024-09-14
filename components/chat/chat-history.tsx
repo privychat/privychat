@@ -178,6 +178,7 @@ const ChatMessagesContainer: React.FC = () => {
                   titleColor={groupParticipants[msg.from]}
                   messageType={msg.type}
                   reactions={reactions}
+                  cid={msg.cid}
                 />
               </React.Fragment>
             );

@@ -76,5 +76,6 @@ interface IChatBubbleProps {
   titleColor?: string;
   messageType: string;
   reactions?: IMessage[];
+  cid: string;
 }
 export type {IAppContext, IChat, IMessage, IStreamMessage, IChatBubbleProps};

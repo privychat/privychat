@@ -9,6 +9,7 @@ import {convertUnixTimestampToHHMM, trimAddress} from "@/lib/utils";
 import {IChatBubbleProps, IMessage} from "@/types";
 import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog";
 
+import EmojiPickerTab from "../ui/emoji-picker";
 const ChatBubble: React.FC<IChatBubbleProps> = ({
   message,
   sender,
@@ -16,13 +17,15 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
   titleColor,
   messageType,
   reactions,
+  cid,
 }) => {
   const {account, activeChat} = useAppContext();
   const {getUserInfo, reverseResolveDomain} = usePush();
   const isSelfMessage = sender.slice(7) === account;
   const [senderImage, setSenderImage] = useState<string | null>(null);
   const [senderName, setSenderName] = useState<string | null>(null);
-
+  const [userHoverOnMessage, setUserHoverOnMessage] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   useEffect(() => {
     const fetchSenderInfo = async () => {
       if (activeChat?.groupInformation?.chatId) {
@@ -177,9 +180,14 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
 
   return (
     <div
-      className={`flex flex-row ${
-        isSelfMessage ? "justify-end" : "justify-start items-end"
+      className={`relative flex flex-row ${
+        isSelfMessage ? "justify-end" : "justify-start "
       }`}
+      onMouseEnter={() => setUserHoverOnMessage(true)}
+      onMouseLeave={() => {
+        setUserHoverOnMessage(false);
+        setShowEmojiPicker(false);
+      }}
     >
       {activeChat?.groupInformation?.chatId && !isSelfMessage && (
         <Image
@@ -213,7 +221,15 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
           {convertUnixTimestampToHHMM(timestamp)}
         </span>
         {renderReactions()}
-      </div>
+        {userHoverOnMessage && (
+          <EmojiPickerTab
+            showEmojiPicker={showEmojiPicker}
+            setShowEmojiPicker={setShowEmojiPicker}
+            isSelfMessage={isSelfMessage}
+            messageCid={cid}
+          />
+        )}
+      </div>{" "}
     </div>
   );
 };
