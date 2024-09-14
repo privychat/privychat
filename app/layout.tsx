@@ -1,4 +1,4 @@
-import type {Metadata} from "next";
+import type {Metadata, Viewport} from "next";
 import {Inter} from "next/font/google";
 import "./globals.css";
 import {ThemeProvider} from "@/providers/theme-provider";
@@ -19,12 +19,12 @@ export const metadata = {
     {rel: "apple-touch-icon", url: "privychat.png"},
     {rel: "icon", url: "/privychat.png"},
   ],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+};
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
