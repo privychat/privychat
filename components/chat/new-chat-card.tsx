@@ -6,7 +6,15 @@ import {IFeeds} from "@pushprotocol/restapi";
 import Image from "next/image";
 import React from "react";
 
-const NewChatItem = ({address, name}: {address: string; name?: string}) => {
+const NewChatItem = ({
+  address,
+  name,
+  openSheet,
+}: {
+  address: string;
+  name?: string;
+  openSheet?: () => void;
+}) => {
   const {setActiveChat, chat: chatContext, activeChat} = useAppContext();
   const {setFeedContent} = chatContext as IChat;
   return (
@@ -25,6 +33,7 @@ const NewChatItem = ({address, name}: {address: string; name?: string}) => {
           ...prev,
           [address]: [],
         }));
+        openSheet && openSheet();
       }}
     >
       <Image

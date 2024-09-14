@@ -84,12 +84,18 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
               <p className="text-gray-400 text-md">
                 No chats found, Start a new chat
               </p>
-              {isAddress(chatSearch) && <NewChatItem address={chatSearch} />}
+              {isAddress(chatSearch) && (
+                <NewChatItem address={chatSearch} openSheet={openSheet} />
+              )}
 
               {!fetchingDomain &&
                 resolvedDomain &&
                 resolvedDomain.toLowerCase() != account?.toLowerCase() && (
-                  <NewChatItem address={resolvedDomain} name={chatSearch} />
+                  <NewChatItem
+                    address={resolvedDomain}
+                    name={chatSearch}
+                    openSheet={openSheet}
+                  />
                 )}
             </div>
           )}
