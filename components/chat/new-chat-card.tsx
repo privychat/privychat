@@ -6,7 +6,7 @@ import {IFeeds} from "@pushprotocol/restapi";
 import Image from "next/image";
 import React from "react";
 
-const NewChatItem = ({address}: {address: string}) => {
+const NewChatItem = ({address, name}: {address: string; name?: string}) => {
   const {setActiveChat, chat: chatContext, activeChat} = useAppContext();
   const {setFeedContent} = chatContext as IChat;
   return (
@@ -36,7 +36,7 @@ const NewChatItem = ({address}: {address: string}) => {
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <span className="text-sm font-medium  w-[75%] text-nowrap text-ellipsis overflow-x-hidden">
-          {trimAddress(address)}
+          {name ?? trimAddress(address)}
         </span>
       </div>
     </div>

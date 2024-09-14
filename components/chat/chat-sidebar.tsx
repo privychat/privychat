@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import ChatBadge from "../ui/chat-badge";
 import {useAppContext} from "@/hooks/use-app-context";
 import ChatItem from "./chat-item";
@@ -6,7 +6,7 @@ import ChatSearch from "./chat-search";
 import ChatItemLoaderSkeleton from "../loaders/chat-item-loader-skeleton";
 import {IChat} from "@/types";
 import {CHAT_TYPE, SUPPORTED_DOMAINS} from "@/constants";
-import {IFeeds} from "@pushprotocol/restapi";
+
 import usePush from "@/hooks/use-push";
 import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 import {isAddress} from "viem";
@@ -15,47 +15,55 @@ import NewChatItem from "./new-chat-card";
 const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
   const {activeChatTab, chatSearch, chat, account} = useAppContext();
   const {resolveDomain} = usePush();
-  const {feeds, feedContent} = chat as IChat;
+  const {feeds} = chat as IChat;
   const [fetchingDomain, setFetchingDomain] = useState(false);
-
+  const [resolvedDomain, setResolvedDomain] = useState<string | null>(null);
   const [filteredChats, setFilteredChats] = useState<any[] | undefined>();
   useEffect(() => {
     const filterChats = async () => {
+      setResolvedDomain(null);
       if (chatSearch === "") {
         setFilteredChats(undefined);
         return;
       }
       const search = chatSearch.toLowerCase();
 
-      // if (SUPPORTED_DOMAINS.includes(search.split(".")[1])) {
-      //   setFetchingDomain(true);
-      //   // fetch address for the domain
-      //   const resolvedAddress = await resolveDomain(search);
+      if (SUPPORTED_DOMAINS.includes(search.split(".")[1])) {
+        setFetchingDomain(true);
+        // fetch address for the domain
+        const resolvedAddress = await resolveDomain(search);
 
-      //   if (resolvedAddress === null) {
-      //     setFilteredChats([]);
-      //     return;
-      //   }
-      //   const filteredChats = feeds?.filter((chat) => {
-      //     if (
-      //       chat?.did?.slice(7)?.toLowerCase() == resolvedAddress.toLowerCase()
-      //     ) {
-      //       return chat;
-      //     }
-      //   });
-      //   setFilteredChats(filteredChats);
-      //   setFetchingDomain(false);
-      // } else {
-      const updatedFilteredChats = feeds?.filter((chat) => {
-        if (chat.groupInformation?.groupName) {
-          return chat.groupInformation.groupName
+        if (resolvedAddress === null) {
+          setFilteredChats([]);
+          return;
+        }
+        const filteredChats = feeds?.filter((chat) => {
+          if (
+            chat?.did?.slice(7)?.toLowerCase() == resolvedAddress.toLowerCase()
+          ) {
+            return chat;
+          }
+        });
+        if (filteredChats?.length === 0 && resolvedAddress) {
+          setResolvedDomain(resolvedAddress);
+        }
+        setFilteredChats(filteredChats);
+        setFetchingDomain(false);
+      } else {
+        const updatedFilteredChats = feeds?.filter((chat) => {
+          if (chat.groupInformation?.groupName) {
+            return chat.groupInformation.groupName
+              .toLowerCase()
+              .includes(search.toLowerCase());
+          }
+          return chat.did
+            ?.slice(7)
             .toLowerCase()
             .includes(search.toLowerCase());
-        }
-        return chat.did?.slice(7).toLowerCase().includes(search.toLowerCase());
-      });
+        });
 
-      setFilteredChats(updatedFilteredChats);
+        setFilteredChats(updatedFilteredChats);
+      }
     };
     filterChats();
   }, [chatSearch]);
@@ -77,11 +85,22 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
                 No chats found, Start a new chat
               </p>
               {isAddress(chatSearch) && <NewChatItem address={chatSearch} />}
+
+              {!fetchingDomain &&
+                resolvedDomain &&
+                resolvedDomain.toLowerCase() != account?.toLowerCase() && (
+                  <NewChatItem address={resolvedDomain} name={chatSearch} />
+                )}
             </div>
           )}
-          {filteredChats.map((chat, index) => (
-            <ChatItem key={index} chat={chat} />
-          ))}
+          {filteredChats
+            .filter(
+              (chat, index, self) =>
+                index === self.findIndex((c) => c.did === chat.did)
+            )
+            .map((chat, index) => (
+              <ChatItem key={index} chat={chat} />
+            ))}
         </section>
       )}
 

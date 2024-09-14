@@ -19,6 +19,12 @@ export const metadata = {
     {rel: "apple-touch-icon", url: "privychat.png"},
     {rel: "icon", url: "/privychat.png"},
   ],
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({

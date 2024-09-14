@@ -12,31 +12,28 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({
-    address:domain
-  });
-  // try {
-  //   const searchUDName = async (domain: string) => {
-  //     const resolvedDomain = await axios.get(
-  //       `https://api.unstoppabledomains.com/resolve/domains/${domain}`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${process.env.UNSTOPPABLE_DOMAINS_API_KEY}`,
-  //         },
-  //       }
-  //     );
-  //     return resolvedDomain.data.meta.owner ?? null;
-  //   };
+  try {
+    const searchUDName = async (domain: string) => {
+      const resolvedDomain = await axios.get(
+        `https://api.unstoppabledomains.com/resolve/domains/${domain}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.UNSTOPPABLE_DOMAINS_API_KEY}`,
+          },
+        }
+      );
+      return resolvedDomain.data.meta.owner ?? null;
+    };
 
-  //   const address = await searchUDName(domain);
-  //   return NextResponse.json({
-  //     address,
-  //   });
-  // } catch (error) {
-  //   return NextResponse.json({
-  //     error: error,
-  //   });
-  // }
+    const address = await searchUDName(domain);
+    return NextResponse.json({
+      address,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      error: error,
+    });
+  }
 }
 
 export const dynamic = "force-dynamic";
