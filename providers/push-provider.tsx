@@ -3,14 +3,7 @@
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {IAppContext, IChat, IMessage, IStreamMessage} from "@/types";
 import {usePrivy} from "@privy-io/react-auth";
-import {
-  CONSTANTS,
-  IFeeds,
-  IUser,
-  PushAPI,
-  TYPES,
-  user,
-} from "@pushprotocol/restapi";
+import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
 import {createContext, useEffect, useRef, useState} from "react";
 import {useWalletClient} from "wagmi";
 import {AppContext} from "@/context/app-context";
@@ -46,6 +39,12 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     },
   });
 
+  const [chatHistoryLoaders, setChatHistoryLoaders] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [historyFetchedChats, setHistoryFetchedChats] = useState<{
+    [key: string]: boolean;
+  }>();
   const [lastFetchedChat, setLastFetchedChat] = useState<number | null>(null);
 
   // stores the last 15 messages for each chat
@@ -164,6 +163,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
           fetching: false,
         },
       }));
+      setFeeds((prevChats) => [...(prevChats || []), ...chats]);
       if (chats.length === 0) {
         setFetchingChats((prev) => ({
           ...prev,
@@ -172,12 +172,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
             allPagesFetched: true,
           },
         }));
-        setFeeds((prevChats) => [...(prevChats || []), ...chats]);
         return;
       }
-      if (page === 1) {
-        setFeeds(chats);
-      } else setFeeds((prevChats) => [...(prevChats || []), ...chats]);
 
       await getUserChats(page + 1);
     }
@@ -202,6 +198,15 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
   const getMessagesForLatestChats = async (feeds: IFeeds[]) => {
     const historyPromises = feeds.map(async (feed) => {
+      if (historyFetchedChats && historyFetchedChats[feed.chatId!]) return;
+      setHistoryFetchedChats((prev) => ({
+        ...prev,
+        [feed.chatId!]: true,
+      }));
+      setChatHistoryLoaders((prev) => ({
+        ...prev,
+        [feed.chatId!]: true,
+      }));
       const history = await pushUser?.chat.history(feed.chatId!, {
         limit: 15,
       });
@@ -228,7 +233,11 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
         setFeedContent((prev) => ({
           ...prev,
-          [feed.chatId!]: historyFormatted,
+          [feed.chatId!]: [...(prev[feed.chatId!] || []), ...historyFormatted],
+        }));
+        setChatHistoryLoaders((prev) => ({
+          ...prev,
+          [feed.chatId!]: false,
         }));
       }
     });
@@ -237,16 +246,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   };
 
   useEffect(() => {
-    let newFeeds: IFeeds[] | undefined;
-    if (!lastFetchedChat && feeds) {
-      setLastFetchedChat(1);
-      newFeeds = feeds.slice(0, 10);
-    } else if (lastFetchedChat && feeds) {
-      newFeeds = feeds.slice(lastFetchedChat * 10, lastFetchedChat * 10 + 10);
-      setLastFetchedChat(lastFetchedChat + 1);
-    }
-
-    getMessagesForLatestChats(newFeeds || []);
+    if (feeds && feeds.length > 0) getMessagesForLatestChats(feeds);
   }, [feeds]);
   useEffect(() => {
     if (pushUser) {
@@ -285,6 +285,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
           feedContent,
           setFeedContent,
           fetchingChats,
+          chatHistoryLoaders,
         },
         pushStream,
         setPushStream: pushStream.current,

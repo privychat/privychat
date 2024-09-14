@@ -14,6 +14,7 @@ import ChatWindow from "@/components/chat-window";
 export default function Home() {
   const {data: signer} = useWalletClient();
   const {ready} = usePrivy();
+  const {isUserAuthenticated} = useAppContext();
 
   const {pushUser} = useAppContext();
 
@@ -22,7 +23,7 @@ export default function Home() {
       {signer && !pushUser && <SignUpModal />}
       {!pushUser && <HeroSection />}
       {pushUser && <ChatWindow />}
-      {!ready && <FullPageLoader />}
+      {!isUserAuthenticated && !ready && <FullPageLoader />}
     </main>
   );
 }

@@ -23,7 +23,7 @@ const ChatInput = () => {
       return {
         ...prev,
         [activeChat?.chatId!]: [
-          ...currentChatHistory,
+          ...(currentChatHistory || []),
           {
             cid: randomId,
             from: `eip155:${account}`,
@@ -38,21 +38,6 @@ const ChatInput = () => {
         ],
       };
     });
-    setStreamMessage({
-      origin: STREAM_SOURCE.SELF,
-      chatId: activeChat?.chatId!,
-      message: {
-        content: input,
-        type: MESSAGE_TYPE.TEXT,
-      },
-      from: `eip155:${localStorage.getItem("userAccount")}`,
-      to: [
-        activeChat?.groupInformation?.chatId!
-          ? activeChat?.groupInformation?.chatId!
-          : activeChat?.did!,
-      ],
-      timestamp: new Date().getTime(),
-    });
 
     sendMessage({
       message: input,
@@ -65,6 +50,7 @@ const ChatInput = () => {
 
   useEffect(() => {
     inputRef.current?.focus();
+    setInput("");
   }, [activeChat]);
 
   return (

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState, useCallback} from "react";
+import React, {useEffect, useRef, useState, useCallback, useMemo} from "react";
 import {MESSAGE_TYPE} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
@@ -9,7 +9,6 @@ import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 import ChatHistoryLoader from "../loaders/chat-history-loader";
 
 const ChatMessagesContainer: React.FC = () => {
-  const [messages, setMessages] = useState<IMessage[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [stopPagination, setStopPagination] = useState(false);
   const [groupParticipants, setGroupParticipants] = useState<{
@@ -19,8 +18,13 @@ const ChatMessagesContainer: React.FC = () => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const {chat, activeChat, streamMessage} = useAppContext();
-  const {feedContent, setFeedContent} = chat as IChat;
+  const {feedContent, setFeedContent, chatHistoryLoaders} = chat as IChat;
   const {getChatHistory} = usePush();
+
+  const currentMessages = useMemo(
+    () => (activeChat?.chatId ? feedContent[activeChat.chatId] || [] : null),
+    [activeChat?.chatId, feedContent]
+  );
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -43,43 +47,53 @@ const ChatMessagesContainer: React.FC = () => {
     return currentDate.toDateString() !== previousDate.toDateString();
   };
 
-  const fetchOlderMessages = useCallback(async (): Promise<IMessage[]> => {
-    if (!activeChat?.chatId || !messages || messages.length === 0) return [];
+  const fetchOlderMessages = useCallback(
+    async (chatId: string, link: string): Promise<IMessage[]> => {
+      if (
+        !activeChat?.chatId ||
+        !currentMessages ||
+        currentMessages.length === 0
+      )
+        return [];
 
-    const olderMessages = await getChatHistory({
-      chatId: activeChat.chatId,
-      reference: messages[0].link,
-    });
+      const olderMessages = await getChatHistory({
+        chatId: chatId,
+        reference: link,
+      });
 
-    return "error" in olderMessages ? [] : olderMessages;
-  }, [activeChat, messages, getChatHistory]);
+      return "error" in olderMessages ? [] : olderMessages;
+    },
+    [activeChat, currentMessages, getChatHistory]
+  );
 
   const handleScroll = useCallback(async () => {
-    if (!scrollRef.current || loading || stopPagination) return;
-
+    if (
+      !scrollRef.current ||
+      loading ||
+      stopPagination ||
+      !activeChat?.chatId ||
+      !currentMessages ||
+      !Array.isArray(currentMessages) ||
+      currentMessages.length === 0
+    )
+      return;
     const {scrollTop, scrollHeight, clientHeight} = scrollRef.current;
     setIsNearBottom(scrollHeight - scrollTop - clientHeight < 100);
 
-    if (scrollTop !== 0 || !messages) return;
+    if (scrollTop !== 0 || !currentMessages) return;
 
     setLoading(true);
     const oldScrollHeight = scrollHeight;
-
-    const olderMessages = await fetchOlderMessages();
+    const chatId = activeChat?.chatId!;
+    const link = currentMessages[0].link;
+    const olderMessages = await fetchOlderMessages(chatId, link);
 
     if (olderMessages.length === 0) {
       setStopPagination(true);
     } else {
-      setMessages((prevMessages) => [
-        ...olderMessages,
-        ...(prevMessages || []),
-      ]);
       setFeedContent((prevFeedContent) => ({
         ...prevFeedContent,
-        [activeChat?.chatId!]: [
-          ...olderMessages,
-          ...(prevFeedContent[activeChat?.chatId!] || []),
-        ],
+        [chatId]: [...olderMessages, ...(currentMessages || [])],
       }));
     }
 
@@ -95,32 +109,25 @@ const ChatMessagesContainer: React.FC = () => {
   }, [
     loading,
     stopPagination,
-    messages,
+    currentMessages,
     fetchOlderMessages,
     activeChat,
     setFeedContent,
   ]);
 
   useEffect(() => {
-    if (!messages) setMessages(feedContent[activeChat?.chatId!] || null);
-  }, [feedContent, activeChat, messages]);
-
-  useEffect(() => {
-    setMessages(feedContent[activeChat?.chatId!] || null);
-
     if (isNearBottom) {
       scrollToBottom();
     }
-  }, [
-    activeChat,
-    feedContent[activeChat?.chatId!],
-    scrollToBottom,
-    isNearBottom,
-  ]);
+  }, [currentMessages, scrollToBottom, isNearBottom]);
 
   useEffect(() => {
-    if (messages) {
-      const participants = messages.map((message) => message.from);
+    if (
+      activeChat?.groupInformation?.chatId &&
+      currentMessages &&
+      currentMessages.length > 0
+    ) {
+      const participants = currentMessages.map((message) => message.from);
       const uniqueParticipants = Array.from(new Set(participants));
       const participantsColors = assignColorsToParticipants(uniqueParticipants);
       setGroupParticipants(participantsColors);
@@ -128,7 +135,7 @@ const ChatMessagesContainer: React.FC = () => {
     if (isNearBottom) {
       scrollToBottom();
     }
-  }, [messages, scrollToBottom, isNearBottom]);
+  }, [currentMessages, scrollToBottom, isNearBottom]);
 
   return (
     <div
@@ -140,40 +147,49 @@ const ChatMessagesContainer: React.FC = () => {
         showLoader={loading}
         text="Fetching older messages"
       />
-      {messages &&
-        messages.map((msg, i) => {
-          if (msg.type === MESSAGE_TYPE.REACTION) return null;
-          const reactions = messages.filter(
-            (message) =>
-              message.type === MESSAGE_TYPE.REACTION &&
-              message.messageContent?.reference === msg.cid
-          );
-          return (
-            <React.Fragment key={msg.link}>
-              {showTimestampBadge(messages, i) && (
-                <div className="flex w-full justify-center items-center my-4">
-                  <p className="w-fit text-xs px-2 py-1 bg-transparent text-gray-400">
-                    {convertUnixTimestamp(msg.timestamp, true)}
-                  </p>
-                </div>
-              )}
-              <ChatBubble
-                message={msg.messageContent.content}
-                sender={msg.from}
-                timestamp={msg.timestamp}
-                titleColor={groupParticipants[msg.from]}
-                messageType={msg.type}
-                reactions={reactions}
-              />
-            </React.Fragment>
-          );
-        })}
-      {messages && messages.length === 0 && (
-        <div className="flex flex-col gap-2 items-center justify-center h-full">
-          <p className="text-gray-400 text-md">Start a new conversation</p>
-        </div>
-      )}
-      {!messages &&
+      {currentMessages &&
+        currentMessages.length > 0 &&
+        currentMessages
+          .filter(
+            (msg, index, self) =>
+              self.findIndex((m) => m.cid === msg.cid) === index
+          )
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .map((msg, i) => {
+            if (msg.type === MESSAGE_TYPE.REACTION) return null;
+            const reactions = currentMessages.filter(
+              (message) =>
+                message.type === MESSAGE_TYPE.REACTION &&
+                message.messageContent?.reference === msg.cid
+            );
+            return (
+              <React.Fragment key={msg.link}>
+                {showTimestampBadge(currentMessages, i) && (
+                  <div className="flex w-full justify-center items-center my-4">
+                    <p className="w-fit text-xs px-2 py-1 bg-transparent text-gray-400">
+                      {convertUnixTimestamp(msg.timestamp, true)}
+                    </p>
+                  </div>
+                )}
+                <ChatBubble
+                  message={msg.messageContent.content}
+                  sender={msg.from}
+                  timestamp={msg.timestamp}
+                  titleColor={groupParticipants[msg.from]}
+                  messageType={msg.type}
+                  reactions={reactions}
+                />
+              </React.Fragment>
+            );
+          })}
+      {!chatHistoryLoaders[activeChat?.chatId!] &&
+        currentMessages &&
+        currentMessages.length === 0 && (
+          <div className="flex flex-col gap-2 items-center justify-center h-full">
+            <p className="text-gray-400 text-md">Start a new conversation</p>
+          </div>
+        )}
+      {chatHistoryLoaders[activeChat?.chatId!] &&
         Array.from({length: 5}).map((_, index) => (
           <ChatHistoryLoader key={index} />
         ))}

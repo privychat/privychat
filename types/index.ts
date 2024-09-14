@@ -45,6 +45,7 @@ interface IChat {
       fetching: boolean;
     };
   };
+  chatHistoryLoaders: {[key: string]: boolean};
 }
 interface IAppContext {
   isUserAuthenticated: boolean;
