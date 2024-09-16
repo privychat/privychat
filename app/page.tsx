@@ -10,6 +10,7 @@ import SignUpModal from "@/components/sign-up-modal";
 import FullPageLoader from "@/components/loaders/full-page-loader";
 import HeroSection from "@/components/ui/hero-section";
 import ChatWindow from "@/components/chat-window";
+import PWAPrompt from "@/components/pwa-prompt";
 
 export default function Home() {
   const {data: signer} = useWalletClient();
@@ -19,11 +20,13 @@ export default function Home() {
   const {pushUser} = useAppContext();
 
   return (
-    <main className="flex min-h-screen min-w-screen flex-col items-center">
-      {signer && !pushUser && <SignUpModal />}
-      {!pushUser && <HeroSection />}
-      {pushUser && <ChatWindow />}
-      {!isUserAuthenticated && !ready && <FullPageLoader />}
-    </main>
+    <PWAPrompt>
+      <main className="flex min-h-screen min-w-screen flex-col items-center">
+        {signer && !pushUser && <SignUpModal />}
+        {!pushUser && <HeroSection />}
+        {pushUser && <ChatWindow />}
+        {!isUserAuthenticated && !ready && <FullPageLoader />}
+      </main>
+    </PWAPrompt>
   );
 }
