@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Input} from "@/components/ui/input";
-import {Search} from "lucide-react";
+import {Search, X} from "lucide-react";
 import Typewriter from "typewriter-effect";
 import {useAppContext} from "@/hooks/use-app-context";
 const ChatSearch = () => {
@@ -15,6 +15,7 @@ const ChatSearch = () => {
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoFocus={isFocused}
+          value={chatSearch}
         />
         {chatSearch.length < 1 && !isFocused && (
           <div className="absolute w-[300px] top-1/2 left-10 transform -translate-y-1/2 z-0">
@@ -30,6 +31,14 @@ const ChatSearch = () => {
         )}
 
         <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 w-[20px] text-white/30" />
+        {chatSearch?.length > 0 && (
+          <X
+            className="absolute top-1/2 right-3 transform -translate-y-1/2 w-[20px] text-white/30"
+            onClick={() => {
+              setChatSearch("");
+            }}
+          />
+        )}
       </div>
     </section>
   );
