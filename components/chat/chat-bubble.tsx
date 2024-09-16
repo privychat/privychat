@@ -10,6 +10,7 @@ import {IChatBubbleProps, IMessage} from "@/types";
 import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog";
 
 import EmojiPickerTab from "../ui/emoji-picker";
+import ChatMessageProcessor from "./chat-message-processor";
 const ChatBubble: React.FC<IChatBubbleProps> = ({
   message,
   sender,
@@ -69,11 +70,7 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
   const renderMessageContent = () => {
     switch (messageType) {
       case MESSAGE_TYPE.TEXT:
-        return (
-          <p className="px-3 pt-3 text-wrap break-words text-white/75 whitespace-pre-wrap text-xs">
-            {message}
-          </p>
-        );
+        return <ChatMessageProcessor message={message} />;
       case MESSAGE_TYPE.IMAGE:
       case MESSAGE_TYPE.GIF:
         const src =

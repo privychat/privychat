@@ -10,6 +10,7 @@ import {IChat, IFeeds} from "@/types";
 
 const ChatInput = () => {
   const [input, setInput] = useState<string>("");
+  const [isFocused, setIsFocused] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {sendMessage} = usePush();
@@ -130,18 +131,24 @@ const ChatInput = () => {
   }, [activeChat]);
 
   return (
-    <div className="flex flex-row items-center justify-center h-14 rounded-md p-2 pt-1">
+    <div
+      className={`flex flex-row items-center justify-center h-14 rounded-md p-2 pt-1 ${
+        isFocused ? "mb-1" : "mb-8"
+      } md:mb-1`}
+    >
       <Input
         ref={inputRef}
-        className="w-full h-full bg-secondary rounded-full rounded-r-none text-sm"
+        className="w-full h-full bg-secondary rounded-full rounded-r-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
         placeholder="Type a message"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        onKeyPress={(e) => {
+        onKeyDown={(e) => {
           if (e.key === "Enter") {
             handleSend();
           }
         }}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       />
       <Button
         className="bg-primary h-full cursor-pointer rounded-full rounded-l-none"
