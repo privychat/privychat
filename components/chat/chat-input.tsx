@@ -75,6 +75,7 @@ const ChatInput = () => {
         }}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
+        inputMode="search"
       />
       <Button
         className="bg-primary h-full cursor-pointer rounded-full rounded-l-none"
