@@ -1,9 +1,7 @@
-import {DEFAULT_PFP} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {convertUnixTimestamp, trimAddress} from "@/lib/utils";
-import {IChat} from "@/types";
-import {IFeeds} from "@pushprotocol/restapi";
+import {IChat, IFeeds} from "@/types";
 import Image from "next/image";
 import React, {useEffect, useState} from "react";
 
@@ -17,28 +15,17 @@ const ChatItem = ({
   const {reverseResolveDomain} = usePush();
   const {setActiveChat, chat: chatContext, activeChat} = useAppContext();
   const {feedContent} = chatContext as IChat;
-  const [isAGroup, setIsAGroup] = useState<boolean>(
-    chat.groupInformation?.chatId ? true : false
-  );
 
   const [chatName, setChatName] = useState<string>();
-  const timestamp = convertUnixTimestamp(
-    chat?.chatId &&
-      feedContent[chat.chatId] &&
-      feedContent[chat.chatId]?.length &&
-      Number(feedContent[chat.chatId]?.length) > 0
-      ? feedContent[chat.chatId]![Number(feedContent[chat.chatId]?.length) - 1]
-          ?.timestamp
-      : chat.msg.timestamp!
-  );
+  const timestamp = convertUnixTimestamp(chat.lastMessageTimestamp!);
 
   useEffect(() => {
-    if (isAGroup) {
-      setChatName(chat.groupInformation?.groupName as string);
+    if (chat.isGroup) {
+      setChatName(chat?.groupName as string);
     } else {
       setChatName(trimAddress(chat.did.slice(7)));
     }
-  }, []);
+  }, [chat]);
 
   // useEffect(() => {
   //   const fetchChatName = async () => {
@@ -69,11 +56,7 @@ const ChatItem = ({
       }}
     >
       <Image
-        src={
-          (isAGroup
-            ? chat.groupInformation?.groupImage || DEFAULT_PFP
-            : chat.profilePicture) || DEFAULT_PFP
-        }
+        src={chat.profilePicture}
         alt="avatar"
         width={50}
         height={50}
@@ -90,14 +73,7 @@ const ChatItem = ({
           </span>
         </div>
         <span className="w-[90%] text-nowrap text-ellipsis overflow-x-hidden text-sm text-muted-foreground">
-          {chat?.chatId &&
-          feedContent[chat.chatId] &&
-          feedContent[chat.chatId]?.length &&
-          Number(feedContent[chat.chatId]?.length) > 0
-            ? feedContent[chat.chatId]![
-                Number(feedContent[chat.chatId]?.length) - 1
-              ]?.messageContent?.content
-            : chat.msg.messageContent}
+          {chat.lastMessage}
         </span>
       </div>
       {/* <div className="absolute flex justify-center items-center bottom-2 right-4 bg-[#24c55b] w-5 h-5 rounded-full">

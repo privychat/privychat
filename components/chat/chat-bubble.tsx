@@ -28,8 +28,8 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   useEffect(() => {
     const fetchSenderInfo = async () => {
-      if (activeChat?.groupInformation?.chatId) {
-        const member = activeChat.groupInformation.members.find(
+      if (activeChat?.chatId) {
+        const member = activeChat?.groupParticipants?.find(
           (member) => member.wallet === sender
         );
         if (!member?.image) {
@@ -189,7 +189,7 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
         setShowEmojiPicker(false);
       }}
     >
-      {activeChat?.groupInformation?.chatId && !isSelfMessage && (
+      {activeChat?.isGroup && !isSelfMessage && (
         <Image
           src={senderImage || DEFAULT_PFP}
           alt="avatar"
@@ -205,7 +205,7 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
           reactions && reactions.length > 0 ? "mb-4" : "mb-0"
         }`}
       >
-        {activeChat?.groupInformation?.chatId && !isSelfMessage && (
+        {activeChat?.isGroup && !isSelfMessage && (
           <p className="px-3 pt-3 pb-0 text-[12px]" style={{color: titleColor}}>
             {senderName || trimAddress(sender.slice(7))}
           </p>

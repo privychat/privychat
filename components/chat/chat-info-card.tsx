@@ -9,10 +9,9 @@ import React, {useEffect, useState} from "react";
 const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   const {activeChat} = useAppContext();
   const {reverseResolveDomain} = usePush();
-  const isAGroup = activeChat?.groupInformation?.chatId ? true : false;
   const [chatName, setChatName] = useState<string>();
   const fetchDomainName = async () => {
-    if (!activeChat?.did || isAGroup) {
+    if (!activeChat?.did || activeChat?.isGroup) {
       return;
     }
     const name = await reverseResolveDomain(activeChat?.did.slice(7)!);
@@ -27,10 +26,8 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   }, [activeChat]);
 
   useEffect(() => {
-    if (isAGroup)
-      setChatName(
-        activeChat?.groupInformation?.groupName || activeChat?.chatId!
-      );
+    if (activeChat?.isGroup)
+      setChatName(activeChat?.groupName || activeChat?.chatId!);
     else setChatName(trimAddress(activeChat?.did.slice(7)!));
   }, [activeChat]);
   return (
@@ -41,11 +38,7 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
         </span>
       )}
       <Image
-        src={
-          isAGroup
-            ? activeChat?.groupInformation?.groupImage || DEFAULT_PFP
-            : activeChat?.profilePicture || DEFAULT_PFP
-        }
+        src={activeChat!.profilePicture}
         alt="avatar"
         width={50}
         height={50}

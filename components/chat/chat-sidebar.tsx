@@ -51,10 +51,8 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
         setFetchingDomain(false);
       } else {
         const updatedFilteredChats = feeds?.filter((chat) => {
-          if (chat.groupInformation?.groupName) {
-            return chat.groupInformation.groupName
-              .toLowerCase()
-              .includes(search.toLowerCase());
+          if (chat.isGroup) {
+            return chat.groupName!.toLowerCase().includes(search.toLowerCase());
           }
           return chat.did
             ?.slice(7)
@@ -68,6 +66,9 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
     filterChats();
   }, [chatSearch]);
 
+  useEffect(() => {
+    console.log(feeds);
+  }, [feeds]);
   return (
     <div className="rounded-md h-20  flex flex-col flex-1 gap-2 py-1 bg-black md:border-[1px] border-gray-500 border-opacity-50">
       <ChatSearch />
@@ -139,13 +140,15 @@ const FeedsTab = ({openSheet}: {openSheet?: () => void}) => {
       )}
       {chat &&
         feeds &&
-        feeds.map((chat, index) => (
-          <ChatItem
-            key={index}
-            chat={chat}
-            {...(openSheet ? {openSheet: openSheet} : {})}
-          />
-        ))}
+        feeds
+          .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+          .map((chat, index) => (
+            <ChatItem
+              key={index}
+              chat={chat}
+              {...(openSheet ? {openSheet: openSheet} : {})}
+            />
+          ))}
       {chat && feeds && feeds.length === 0 && (
         <div className="flex flex-col gap-2 items-center justify-center h-full">
           <p className="text-gray-400 text-md">Start a new conversation</p>
@@ -174,13 +177,15 @@ const RequestsTab = ({openSheet}: {openSheet?: () => void}) => {
       )}
       {chat &&
         requests &&
-        requests.map((chat, index) => (
-          <ChatItem
-            key={index}
-            chat={chat}
-            {...(openSheet ? {openSheet: openSheet} : {})}
-          />
-        ))}
+        requests
+          .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+          .map((chat, index) => (
+            <ChatItem
+              key={index}
+              chat={chat}
+              {...(openSheet ? {openSheet: openSheet} : {})}
+            />
+          ))}
       {chat && requests && requests.length === 0 && (
         <div className="flex flex-col gap-2 items-center justify-center h-full">
           <p className="text-gray-400 text-md">No pending requests</p>
@@ -212,7 +217,8 @@ const GroupsTab = ({openSheet}: {openSheet?: () => void}) => {
       {chat &&
         feeds &&
         feeds
-          .filter((chat) => chat.groupInformation?.chatId)
+          .filter((chat) => chat.isGroup)
+          .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
           .map((chat, index) => (
             <ChatItem
               key={index}

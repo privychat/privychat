@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState, useCallback, useMemo} from "react";
-import {MESSAGE_TYPE} from "@/constants";
+import {CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {IChat, IMessage} from "@/types";
@@ -17,13 +17,22 @@ const ChatMessagesContainer: React.FC = () => {
   const [isNearBottom, setIsNearBottom] = useState(true);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const {chat, activeChat, streamMessage} = useAppContext();
-  const {feedContent, setFeedContent, chatHistoryLoaders} = chat as IChat;
+  const {chat, activeChat, activeChatTab, streamMessage} = useAppContext();
+  const {
+    feedContent,
+    setRequestsContent,
+    requestsContent,
+    setFeedContent,
+    chatHistoryLoaders,
+  } = chat as IChat;
   const {getChatHistory} = usePush();
 
   const currentMessages = useMemo(
-    () => (activeChat?.chatId ? feedContent[activeChat.chatId] || [] : null),
-    [activeChat?.chatId, feedContent]
+    () =>
+      activeChatTab === CHAT_TYPE.ALL && activeChat
+        ? feedContent[activeChat.chatId!]
+        : requestsContent[activeChat?.chatId!],
+    [activeChat, feedContent, requestsContent, activeChatTab]
   );
 
   const scrollToBottom = useCallback(() => {
@@ -90,10 +99,15 @@ const ChatMessagesContainer: React.FC = () => {
 
     if (olderMessages.length === 0) {
       setStopPagination(true);
+    } else if (activeChatTab === CHAT_TYPE.REQUESTS) {
+      setRequestsContent((prev) => ({
+        ...prev,
+        [chatId]: [...olderMessages, ...currentMessages],
+      }));
     } else {
-      setFeedContent((prevFeedContent) => ({
-        ...prevFeedContent,
-        [chatId]: [...olderMessages, ...(currentMessages || [])],
+      setFeedContent((prev) => ({
+        ...prev,
+        [chatId]: [...olderMessages, ...currentMessages],
       }));
     }
 
@@ -113,6 +127,8 @@ const ChatMessagesContainer: React.FC = () => {
     fetchOlderMessages,
     activeChat,
     setFeedContent,
+    activeChatTab,
+    setRequestsContent,
   ]);
 
   useEffect(() => {
@@ -122,11 +138,7 @@ const ChatMessagesContainer: React.FC = () => {
   }, [currentMessages, scrollToBottom, isNearBottom]);
 
   useEffect(() => {
-    if (
-      activeChat?.groupInformation?.chatId &&
-      currentMessages &&
-      currentMessages.length > 0
-    ) {
+    if (activeChat?.isGroup && currentMessages && currentMessages.length > 0) {
       const participants = currentMessages.map((message) => message.from);
       const uniqueParticipants = Array.from(new Set(participants));
       const participantsColors = assignColorsToParticipants(uniqueParticipants);
@@ -135,7 +147,7 @@ const ChatMessagesContainer: React.FC = () => {
     if (isNearBottom) {
       scrollToBottom();
     }
-  }, [currentMessages, scrollToBottom, isNearBottom]);
+  }, [currentMessages, scrollToBottom, isNearBottom, activeChat]);
 
   return (
     <div

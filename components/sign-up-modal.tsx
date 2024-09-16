@@ -1,9 +1,6 @@
 import {useAppContext} from "@/hooks/use-app-context";
-import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {usePrivy} from "@privy-io/react-auth";
-import {CONSTANTS, PushAPI} from "@pushprotocol/restapi";
-import React, {useState} from "react";
-import {useWalletClient} from "wagmi";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -12,104 +9,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {Button} from "./ui/button";
-import {IChat, IStreamMessage} from "@/types";
-import {STREAM_SOURCE} from "@/constants";
 
 const SignUpModal = () => {
-  const {data: signer} = useWalletClient();
-  const {user} = usePrivy();
-  const {
-    isUserAuthenticated,
-    setAccount,
-    setPushUser,
-    pushStream,
-    setStreamMessage,
-    chat,
-  } = useAppContext();
-  const {setFeedContent} = chat as IChat;
-  const [loading, setLoading] = useState(false);
-  const initializePushUser = async () => {
-    if (isUserAuthenticated && signer) {
-      try {
-        setLoading(true);
-        const {userAccount, userKey} = getUserKeys();
-
-        const user = await PushAPI.initialize(signer, {
-          env: CONSTANTS.ENV.PROD,
-          ...(userKey && {decryptedPGPPrivateKey: userKey}),
-          ...(userAccount && {account: userAccount}),
-        });
-
-        if (!user.decryptedPgpPvtKey) {
-          setLoading(false);
-          return;
-        }
-        saveUserKeys(user.decryptedPgpPvtKey!, user.account);
-        setPushUser(user);
-        setAccount(user.account);
-
-        if (pushStream.current && pushStream.current.disconnected === false) {
-          setLoading(false);
-          return;
-        }
-
-        const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
-        stream.on(CONSTANTS.STREAM.CONNECT, async (a) => {
-          console.log("Stream Connected");
-        });
-        stream.on(CONSTANTS.STREAM.DISCONNECT, async (a) => {
-          console.log("Stream Disconnected");
-        });
-
-        // Chat message received:
-        stream.on(CONSTANTS.STREAM.CHAT, (stream: IStreamMessage) => {
-          if (
-            stream.event === "chat.message" &&
-            stream.origin !== STREAM_SOURCE.SELF
-          ) {
-            const {chatId, from, message, timestamp, reference, origin} =
-              stream;
-            setFeedContent((prev) => {
-              const currentChatHistory = prev[chatId] || [];
-              return {
-                ...prev,
-                [chatId]: [
-                  ...currentChatHistory,
-                  {
-                    cid: reference,
-                    from: from,
-                    to: chatId,
-                    timestamp: Number(timestamp),
-                    messageContent: {
-                      content: message.content,
-                    },
-                    link: reference,
-                    type: message.type,
-                  },
-                ],
-              };
-            });
-
-            setStreamMessage(stream);
-            if (origin != "self") {
-              playNotification();
-            }
-          }
-        });
-        stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
-          console.log("Chat Ops", message);
-        });
-
-        stream.connect();
-
-        pushStream.current = stream;
-        setLoading(false);
-      } catch (error) {
-        console.error(error);
-        setLoading(false);
-      }
-    }
-  };
+  const {initializePushUser} = useAppContext();
 
   return (
     <section className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 bg-blur-lg bg-backdrop z-100">
@@ -124,18 +26,8 @@ const SignUpModal = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="w-full">
-          <Button
-            onClick={initializePushUser}
-            className="w-full"
-            disabled={loading}
-          >
-            {loading
-              ? `${
-                  user?.email?.address
-                    ? "Setting up your profile"
-                    : "Sign in Wallet"
-                }`
-              : "Continue"}
+          <Button onClick={initializePushUser} className="w-full">
+            Continue
           </Button>
         </CardContent>
       </Card>
