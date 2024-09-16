@@ -104,6 +104,13 @@ function generateRandomString(length: number): string {
   }
   return result;
 }
+
+function extractWebLinks(message: string): string[] {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const matches = message.match(urlRegex);
+  return matches ? matches : [];
+}
+
 export {
   cn,
   saveUserKeys,
@@ -115,4 +122,5 @@ export {
   assignColorsToParticipants,
   playNotification,
   generateRandomString,
+  extractWebLinks,
 };
