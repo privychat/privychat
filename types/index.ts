@@ -72,9 +72,6 @@ interface IAppContext {
   setUserInfo: React.Dispatch<React.SetStateAction<IUser | null>>;
   chat: IChat | null;
   pushStream: any | null;
-  setPushStream: React.Dispatch<React.SetStateAction<any | null>>;
-  streamMessage: any | null;
-  setStreamMessage: React.Dispatch<React.SetStateAction<any | null>>;
   activeChat: IFeeds | null; // IFeed of the chat active
   setActiveChat: React.Dispatch<React.SetStateAction<IFeeds | null>>;
   chatSearch: string;

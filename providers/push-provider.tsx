@@ -1,359 +1,290 @@
 "use client";
-
-import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
-import {IFeeds, IMessage, IStreamMessage} from "@/types";
+import React, {useEffect, useRef, useState, useCallback} from "react";
 import {usePrivy} from "@privy-io/react-auth";
-import {CONSTANTS, IUser, PushAPI} from "@pushprotocol/restapi";
-import {useEffect, useRef, useState} from "react";
 import {useWalletClient} from "wagmi";
+import {CONSTANTS, IUser, PushAPI} from "@pushprotocol/restapi";
 import {AppContext} from "@/context/app-context";
 import {CHAT_TYPE, DEFAULT_PFP, STREAM_SOURCE} from "@/constants";
+import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
+import {IFeeds, IMessage, IStreamMessage} from "@/types";
 
 export default function AppProvider({children}: {children: React.ReactNode}) {
-  // user account related stated
+  // User account related state
   const [pushUser, setPushUser] = useState<PushAPI | null>(null);
   const [userInfo, setUserInfo] = useState<IUser | null>(null);
   const [account, setAccount] = useState<string | null>(null);
   const [isUserAuthenticated, setIsUserAuthenticated] =
     useState<boolean>(false);
-  // chat related states
+
+  // Chat related state
   const [feeds, setFeeds] = useState<IFeeds[] | null>(null);
-  const feedsRef = useRef(feeds);
   const [requests, setRequests] = useState<IFeeds[] | null>(null);
-  const [fetchingChats, setFetchingChats] = useState<{
-    feeds: {
-      allPagesFetched: boolean;
-      fetching: boolean;
-    };
-    requests: {
-      allPagesFetched: boolean;
-      fetching: boolean;
-    };
-  }>({
-    feeds: {
-      allPagesFetched: false,
-      fetching: false,
-    },
-    requests: {
-      allPagesFetched: false,
-      fetching: false,
-    },
+  const [fetchingChats, setFetchingChats] = useState({
+    feeds: {allPagesFetched: false, fetching: false},
+    requests: {allPagesFetched: false, fetching: false},
   });
+  const [chatHistoryLoaders, setChatHistoryLoaders] = useState<
+    Record<string, boolean>
+  >({});
+  const [historyFetchedChats, setHistoryFetchedChats] = useState<
+    Record<string, boolean>
+  >({});
+  const [feedContent, setFeedContent] = useState<
+    Record<string, IMessage[] | null>
+  >({});
+  const [requestsContent, setRequestsContent] = useState<
+    Record<string, IMessage[] | null>
+  >({});
 
-  const [chatHistoryLoaders, setChatHistoryLoaders] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const [historyFetchedChats, setHistoryFetchedChats] = useState<{
-    [key: string]: boolean;
-  }>();
-  // stores the last 15 messages for each chat
-  const [feedContent, setFeedContent] = useState<{
-    [key: string]: IMessage[] | null;
-  }>({});
-  const feedContentRef = useRef(feedContent);
-  const [requestsContent, setRequestsContent] = useState<{
-    [key: string]: IMessage[] | null;
-  }>({});
-
-  // incoming stream message from socket
-  const [streamMessage, setStreamMessage] = useState<any | null>(null);
-
-  // stream ref
-  const pushStream = useRef<any | null>(null);
-
-  // used to store the active chat, search query and active chat tab
+  // UI state
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
   const [activeChatTab, setActiveChatTab] = useState<CHAT_TYPE>(CHAT_TYPE.ALL);
 
-  // signer
+  // Refs
+  const feedsRef = useRef(feeds);
+  const feedContentRef = useRef(feedContent);
+  const pushStreamRef = useRef<any | null>(null);
+
+  // Hooks
   const {data: signer} = useWalletClient();
-  // privy user
   const {user: privyUser, ready, authenticated} = usePrivy();
 
-  const initializePushUser = async () => {
+  const initializePushUser = useCallback(async () => {
     try {
       const {userAccount, userKey} = getUserKeys();
       if (!userAccount && !userKey && !signer) return;
+
       const user = await PushAPI.initialize(signer, {
-        env: CONSTANTS.ENV.PROD,
-        ...(userKey && {decryptedPGPPrivateKey: userKey}),
-        ...(userAccount && {account: userAccount}),
+        env: CONSTANTS.ENV.STAGING,
+        decryptedPGPPrivateKey: userKey,
+        account: userAccount,
       });
 
-      if (!user.decryptedPgpPvtKey) {
-        return;
-      }
-      saveUserKeys(user.decryptedPgpPvtKey!, user.account);
+      if (!user.decryptedPgpPvtKey) return;
+
+      saveUserKeys(user.decryptedPgpPvtKey, user.account);
       setPushUser(user);
       setAccount(user.account);
 
-      if (pushStream.current && pushStream.current.disconnected === false) {
-        return;
-      }
+      if (pushStreamRef.current?.disconnected === false) return;
 
       const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
-      stream.on(CONSTANTS.STREAM.CONNECT, async (a) => {
-        console.log("Stream Connected");
-      });
-      stream.on(CONSTANTS.STREAM.DISCONNECT, async (a) => {
-        console.log("Stream Disconnected");
-      });
-
-      // Chat message received:
-      stream.on(CONSTANTS.STREAM.CHAT, (stream: IStreamMessage) => {
-        if (
-          stream.event === "chat.message" &&
-          stream.origin !== STREAM_SOURCE.SELF
-        ) {
-          handleIncomingMessage(stream);
-
-          if (origin != "self") {
-            playNotification();
-          }
-        }
-      });
-      stream.on(CONSTANTS.STREAM.CHAT_OPS, (message) => {
-        console.log("Chat Ops", message);
-      });
-
+      setupStreamListeners(stream);
       stream.connect();
 
-      pushStream.current = stream;
+      pushStreamRef.current = stream;
     } catch (error) {
-      console.error(error);
+      console.error("Failed to initialize Push user:", error);
     }
+  }, [signer]);
+
+  const setupStreamListeners = (stream: any) => {
+    stream.on(CONSTANTS.STREAM.CONNECT, () => console.log("Stream Connected"));
+    stream.on(CONSTANTS.STREAM.DISCONNECT, () =>
+      console.log("Stream Disconnected")
+    );
+    stream.on(CONSTANTS.STREAM.CHAT, handleIncomingMessage);
+    stream.on(CONSTANTS.STREAM.CHAT_OPS, (message: any) =>
+      console.log("Chat Ops", message)
+    );
   };
 
-  const handleIncomingMessage = (streamMessage: IStreamMessage) => {
-    const {chatId, from, message, timestamp, reference, origin, meta} =
-      streamMessage;
-    const currentFeedContent = feedContentRef.current;
+  const handleIncomingMessage = useCallback((stream: IStreamMessage) => {
+    if (stream.event !== "chat.message" || stream.origin === STREAM_SOURCE.SELF)
+      return;
 
-    if (currentFeedContent.hasOwnProperty(chatId)) {
-      console.log("Chat ID in feedContent");
-      setFeedContent((prev) => {
-        const currentChatHistory = prev[chatId] || [];
-        return {
-          ...prev,
-          [chatId]: [
-            ...currentChatHistory,
+    const {chatId, from, message, timestamp, reference, meta} = stream;
+    const isGroup = meta.group;
+    const newMessage: IMessage = {
+      cid: reference,
+      from,
+      to: chatId,
+      timestamp: Number(timestamp),
+      messageContent: {content: message.content},
+      link: reference,
+      type: message.type,
+    };
+
+    updateChatContent(chatId, newMessage);
+    updateChatList(chatId, newMessage, isGroup);
+    playNotification();
+  }, []);
+
+  const updateChatContent = useCallback(
+    (chatId: string, newMessage: IMessage) => {
+      const updateFunction = (
+        prevContent: Record<string, IMessage[] | null>
+      ) => ({
+        ...prevContent,
+        [chatId]: [...(prevContent[chatId] || []), newMessage],
+      });
+
+      if (feedContentRef.current.hasOwnProperty(chatId)) {
+        setFeedContent(updateFunction);
+      } else {
+        setRequestsContent(updateFunction);
+      }
+    },
+    []
+  );
+
+  const updateChatList = useCallback(
+    (chatId: string, newMessage: IMessage, isGroup: boolean) => {
+      const updateFunction = (prevChats: IFeeds[] | null) => {
+        if (!prevChats) return null;
+        const chatIndex = prevChats.findIndex((chat) => chat.chatId === chatId);
+        if (chatIndex === -1) {
+          return [
+            ...prevChats,
             {
-              cid: reference,
-              from: from,
-              to: chatId,
-              timestamp: Number(timestamp),
-              messageContent: {
-                content: message.content,
-              },
-              link: reference,
-              type: message.type,
+              chatId,
+              did: newMessage.from,
+              profilePicture: DEFAULT_PFP,
+              lastMessage: newMessage.messageContent.content,
+              lastMessageTimestamp: newMessage.timestamp,
+              isGroup,
             },
-          ],
-        };
-      });
-    } else {
-      setRequestsContent((prev) => {
-        return {
-          ...prev,
-          [chatId]: [
-            {
-              cid: reference,
-              from: from,
-              to: chatId,
-              timestamp: Number(timestamp),
-              messageContent: {
-                content: message.content,
-              },
-              link: reference,
-              type: message.type,
-            },
-          ],
-        };
-      });
-    }
-
-    const currentFeeds = feedsRef.current;
-    if (currentFeeds?.find((feed) => feed.chatId === chatId)) {
-      setFeeds((prev) => {
-        if (!prev) return null;
-
-        const updatedChats = prev.map((chat) => {
-          if (chat.chatId === chatId) {
-            return {
-              ...chat,
-              lastMessage: message.content,
-              lastMessageTimestamp: Number(timestamp),
-            };
-          }
-          return chat;
-        });
-
-        return updatedChats;
-      });
-    } else {
-      setRequests((prev) => {
-        if (!prev) return null;
-
-        let chatExists = false;
-
-        const updatedChats = prev.map((chat) => {
-          if (chat.chatId === chatId) {
-            chatExists = true;
-            return {
-              ...chat,
-              lastMessage: message.content,
-              lastMessageTimestamp: Number(timestamp),
-            };
-          }
-          return chat;
-        });
-
-        if (!chatExists) {
-          // Add a new entry if the activeChat.chatId was not found
-          updatedChats.push({
-            chatId: chatId,
-            did: from,
-            profilePicture: DEFAULT_PFP,
-            lastMessage: message.content,
-            lastMessageTimestamp: Number(timestamp),
-            isGroup: meta.group,
-          });
+          ];
         }
-
+        const updatedChats = [...prevChats];
+        updatedChats[chatIndex] = {
+          ...updatedChats[chatIndex],
+          lastMessage: newMessage.messageContent.content,
+          lastMessageTimestamp: newMessage.timestamp,
+        };
         return updatedChats;
-      });
-    }
-  };
+      };
 
-  const getUserChats = async (page: number = 1) => {
-    setFetchingChats((prev) => ({
-      ...prev,
-      feeds: {
-        ...prev.feeds,
-        fetching: true,
-      },
-    }));
-    const chats = await pushUser?.chat.list("CHATS", {
-      limit: 10,
-      page,
-    });
+      if (feedsRef.current?.find((feed) => feed.chatId === chatId)) {
+        setFeeds(updateFunction);
+      } else {
+        setRequests(updateFunction);
+      }
+    },
+    []
+  );
 
-    if (chats) {
+  const getUserChats = useCallback(
+    async (page: number = 1) => {
+      if (!pushUser) return;
       setFetchingChats((prev) => ({
         ...prev,
-        feeds: {
-          ...prev.feeds,
-          fetching: false,
-        },
+        feeds: {...prev.feeds, fetching: true},
       }));
-      const formattedChats = chats.map((chat) => {
-        return {
-          chatId: chat.chatId!,
-          did: chat.did,
-          lastMessage: chat.msg.messageContent,
-          lastMessageTimestamp: Date.parse(chat.intentTimestamp.toString()),
-          profilePicture:
-            chat.profilePicture ||
-            chat.groupInformation?.groupImage ||
-            DEFAULT_PFP,
-          isGroup: chat.groupInformation?.chatId ? true : false,
-          groupName: chat.groupInformation?.groupName,
-          groupParticipants: chat.groupInformation?.members,
-        };
-      });
 
-      setFeeds((prevChats) => [...(prevChats || []), ...formattedChats]);
-      if (chats.length === 0 || chats.length < 10) {
+      try {
+        const chats = await pushUser.chat.list("CHATS", {limit: 10, page});
+        if (!chats) return;
+
+        const formattedChats = chats.map(formatChat);
+        if (page === 1) {
+          setFeeds(formattedChats);
+        } else
+          setFeeds((prevChats) => [...(prevChats || []), ...formattedChats]);
+
+        if (chats.length < 10) {
+          setFetchingChats((prev) => ({
+            ...prev,
+            feeds: {fetching: false, allPagesFetched: true},
+          }));
+        } else {
+          await getUserChats(page + 1);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user chats:", error);
         setFetchingChats((prev) => ({
           ...prev,
-          feeds: {
-            ...prev.feeds,
-            allPagesFetched: true,
-          },
+          feeds: {...prev.feeds, fetching: false},
         }));
-        return;
       }
+    },
+    [pushUser]
+  );
 
-      await getUserChats(page + 1);
-    }
-  };
-
-  const getUserRequests = async (page: number = 1) => {
-    const requests = await pushUser?.chat.list("REQUESTS", {
-      limit: 10,
-    });
-    if (requests) {
+  const getUserRequests = useCallback(
+    async (page: number = 1) => {
+      if (!pushUser) return;
       setFetchingChats((prev) => ({
         ...prev,
-        requests: {
-          ...prev.requests,
-          fetching: false,
-        },
+        requests: {...prev.requests, fetching: true},
       }));
-      const formattedRequests = requests.map((chat) => {
-        return {
-          chatId: chat.chatId!,
-          did: chat.did,
-          lastMessage: chat.msg.messageContent,
-          lastMessageTimestamp: Date.parse(chat.intentTimestamp.toString()),
-          profilePicture:
-            chat.profilePicture ||
-            chat.groupInformation?.groupImage ||
-            DEFAULT_PFP,
-          isGroup: chat.groupInformation?.chatId ? true : false,
-          groupName: chat.groupInformation?.groupName,
-          groupParticipants: chat.groupInformation?.members,
-        };
-      });
-      setRequests((prevRequests) => [
-        ...(prevRequests || []),
-        ...formattedRequests,
-      ]);
-      if (requests.length === 0 || requests.length < 10) {
+
+      try {
+        const requests = await pushUser.chat.list("REQUESTS", {
+          limit: 10,
+          page,
+        });
+        if (!requests) return;
+
+        const formattedRequests = requests.map(formatChat);
+        if (page === 1) {
+          setRequests(formattedRequests);
+        } else
+          setRequests((prevRequests) => [
+            ...(prevRequests || []),
+            ...formattedRequests,
+          ]);
+
+        if (requests.length < 10) {
+          setFetchingChats((prev) => ({
+            ...prev,
+            requests: {fetching: false, allPagesFetched: true},
+          }));
+        } else {
+          await getUserRequests(page + 1);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user requests:", error);
         setFetchingChats((prev) => ({
           ...prev,
-          requests: {
-            ...prev.requests,
-            allPagesFetched: true,
-          },
+          requests: {...prev.requests, fetching: false},
         }));
-        return;
       }
+    },
+    [pushUser]
+  );
 
-      await getUserRequests(page + 1);
+  const formatChat = (chat: any): IFeeds => ({
+    chatId: chat.chatId!,
+    did: chat.did,
+    lastMessage: chat.msg.messageContent,
+    lastMessageTimestamp: Date.parse(chat.intentTimestamp.toString()),
+    profilePicture:
+      chat.profilePicture || chat.groupInformation?.groupImage || DEFAULT_PFP,
+    isGroup: !!chat.groupInformation?.chatId,
+    groupName: chat.groupInformation?.groupName,
+    groupParticipants: chat.groupInformation?.members,
+  });
+
+  const getUserDetails = useCallback(async () => {
+    if (!pushUser) return;
+    try {
+      const user = await pushUser.info();
+      if (user) setUserInfo(user);
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
     }
-  };
+  }, [pushUser]);
 
-  const getUserDetails = async () => {
-    const user = await pushUser?.info();
-    if (user) {
-      setUserInfo(user);
-    }
-  };
+  const getMessagesForLatestChats = useCallback(
+    async (chats: IFeeds[], tab: "CHATS" | "REQUESTS") => {
+      if (!pushUser) return;
 
-  const getMessagesForLatestChats = async (
-    feeds: IFeeds[],
-    tab: "CHATS" | "REQUESTS"
-  ) => {
-    const historyPromises = feeds.map(async (feed) => {
-      if (historyFetchedChats && historyFetchedChats[feed.chatId!]) return;
-      setHistoryFetchedChats((prev) => ({
-        ...prev,
-        [feed.chatId!]: true,
-      }));
-      setChatHistoryLoaders((prev) => ({
-        ...prev,
-        [feed.chatId!]: true,
-      }));
-      const history = await pushUser?.chat.history(feed.chatId!, {
-        limit: 15,
-      });
+      const historyPromises = chats.map(async (chat) => {
+        if (historyFetchedChats[chat.chatId!]) return;
 
-      if (history) {
-        const historyFormatted: IMessage[] = history
-          .map((msg) => {
-            return {
+        setHistoryFetchedChats((prev) => ({...prev, [chat.chatId!]: true}));
+        setChatHistoryLoaders((prev) => ({...prev, [chat.chatId!]: true}));
+
+        try {
+          const history = await pushUser.chat.history(chat.chatId!, {
+            limit: 15,
+          });
+          if (!history) return;
+
+          const historyFormatted: IMessage[] = history
+            .map((msg) => ({
               cid: msg.cid,
               to: msg.toDID,
               from: msg.fromDID,
@@ -366,36 +297,33 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
               },
               timestamp: msg.timestamp,
               link: msg.link,
-            };
-          })
-          .reverse();
+            }))
+            .reverse();
 
-        if (tab === "CHATS") {
-          setFeedContent((prev) => ({
+          const setContentFunction =
+            tab === "CHATS" ? setFeedContent : setRequestsContent;
+          setContentFunction((prev) => ({
             ...prev,
-            [feed.chatId!]: [
-              ...(prev[feed.chatId!] || []),
+            [chat.chatId!]: [
+              ...(prev[chat.chatId!] || []),
               ...historyFormatted,
             ],
           }));
-        } else if (tab === "REQUESTS") {
-          setRequestsContent((prev) => ({
-            ...prev,
-            [feed.chatId!]: [
-              ...(prev[feed.chatId!] || []),
-              ...historyFormatted,
-            ],
-          }));
+        } catch (error) {
+          console.error(
+            `Failed to fetch chat history for ${chat.chatId}:`,
+            error
+          );
+        } finally {
+          setChatHistoryLoaders((prev) => ({...prev, [chat.chatId!]: false}));
         }
-        setChatHistoryLoaders((prev) => ({
-          ...prev,
-          [feed.chatId!]: false,
-        }));
-      }
-    });
+      });
 
-    await Promise.all(historyPromises);
-  };
+      await Promise.all(historyPromises);
+    },
+    [pushUser, historyFetchedChats]
+  );
+
   useEffect(() => {
     feedContentRef.current = feedContent;
   }, [feedContent]);
@@ -403,72 +331,71 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   useEffect(() => {
     feedsRef.current = feeds;
   }, [feeds]);
+
   useEffect(() => {
     if (feeds && feeds.length > 0) getMessagesForLatestChats(feeds, "CHATS");
-  }, [feeds]);
+  }, [feeds, getMessagesForLatestChats]);
+
   useEffect(() => {
     if (requests && requests.length > 0)
       getMessagesForLatestChats(requests, "REQUESTS");
-  }, [requests]);
+  }, [requests, getMessagesForLatestChats]);
+
   useEffect(() => {
     if (pushUser) {
       Promise.all([getUserChats(), getUserRequests(), getUserDetails()]);
     }
-  }, [pushUser]);
+  }, [pushUser, getUserChats, getUserRequests, getUserDetails]);
+
   useEffect(() => {
     const localUser = getUserKeys();
-
-    if (
-      (localUser.userAccount && localUser.userKey) ||
-      (authenticated && signer)
-    ) {
-      setIsUserAuthenticated(true);
-    }
+    setIsUserAuthenticated(
+      !!(
+        (localUser.userAccount && localUser.userKey) ||
+        (authenticated && signer)
+      )
+    );
   }, [signer, authenticated, ready, privyUser]);
+
   useEffect(() => {
     initializePushUser();
-
     return () => {
-      pushStream.current?.disconnect();
+      pushStreamRef.current?.disconnect();
     };
-  }, []);
+  }, [initializePushUser]);
+
+  const contextValue = {
+    isUserAuthenticated,
+    setIsUserAuthenticated,
+    account,
+    setAccount,
+    pushUser,
+    setPushUser,
+    userInfo,
+    setUserInfo,
+    chat: {
+      feeds,
+      setFeeds,
+      requests,
+      setRequests,
+      feedContent,
+      setFeedContent,
+      fetchingChats,
+      chatHistoryLoaders,
+      requestsContent,
+      setRequestsContent,
+    },
+    pushStream: pushStreamRef,
+    activeChat,
+    setActiveChat,
+    chatSearch,
+    setChatSearch,
+    activeChatTab,
+    setActiveChatTab,
+    initializePushUser,
+  };
+
   return (
-    <AppContext.Provider
-      value={{
-        isUserAuthenticated,
-        setIsUserAuthenticated,
-        account,
-        setAccount,
-        pushUser,
-        setPushUser,
-        userInfo,
-        setUserInfo,
-        chat: {
-          feeds,
-          setFeeds,
-          requests,
-          setRequests,
-          feedContent,
-          setFeedContent,
-          fetchingChats,
-          chatHistoryLoaders,
-          requestsContent,
-          setRequestsContent,
-        },
-        pushStream,
-        setPushStream: pushStream.current,
-        streamMessage,
-        setStreamMessage,
-        activeChat,
-        setActiveChat,
-        chatSearch,
-        setChatSearch,
-        activeChatTab,
-        setActiveChatTab,
-        initializePushUser,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
 }

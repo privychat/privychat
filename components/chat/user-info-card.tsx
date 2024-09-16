@@ -16,14 +16,8 @@ import {IChat} from "@/types";
 
 const UserInfoCard = () => {
   const {authenticated, logout} = usePrivy();
-  const {
-    userInfo,
-    setAccount,
-    setActiveChat,
-    setPushStream,
-    setUserInfo,
-    chat,
-  } = useAppContext();
+  const {userInfo, setAccount, setActiveChat, setUserInfo, chat} =
+    useAppContext();
   const {setFeedContent, setFeeds, setRequests} = chat as IChat;
   const {data: ensName} = useEnsName({
     address: userInfo?.did.slice(7)! as `0x${string}`,
