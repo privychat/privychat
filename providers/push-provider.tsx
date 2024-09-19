@@ -2,7 +2,7 @@
 import React, {useEffect, useRef, useState, useCallback} from "react";
 import {usePrivy} from "@privy-io/react-auth";
 import {useWalletClient} from "wagmi";
-import {CONSTANTS, IUser, PushAPI} from "@pushprotocol/restapi";
+import {CONSTANTS, Env, IUser, PushAPI} from "@pushprotocol/restapi";
 import {AppContext} from "@/context/app-context";
 import {CHAT_TYPE, DEFAULT_PFP, STREAM_SOURCE} from "@/constants";
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
@@ -58,7 +58,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       if (!userAccount && !userKey && !signer) return;
 
       const user = await PushAPI.initialize(signer, {
-        env: CONSTANTS.ENV.DEV,
+        env: (process.env.NEXT_PUBLIC_PUSH_ENV! as Env) || CONSTANTS.ENV.PROD,
         decryptedPGPPrivateKey: userKey,
         account: userAccount,
       });
