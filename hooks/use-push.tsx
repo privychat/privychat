@@ -4,8 +4,9 @@ import axios from "axios";
 import {useAppContext} from "./use-app-context";
 import {MESSAGE_TYPE} from "@/constants";
 import {IChat, IStreamMessage} from "@/types";
+import {getAddress} from "viem";
 const usePush = () => {
-  const {pushUser, chat} = useAppContext();
+  const {pushUser, chat, account} = useAppContext();
   const {setFeedContent} = chat as IChat;
 
   const reverseResolveDomain = async (
@@ -38,6 +39,27 @@ const usePush = () => {
     }
   };
 
+  const addContact = async (address: string, name: string) => {
+    try {
+      const response = await axios.put(
+        `/api/user?address=${getAddress(account!)}`,
+        {
+          address,
+          name,
+        }
+      );
+      if (response.data.success) {
+        return response.data.data.contacts;
+      }
+      return {
+        error: response.data.error,
+      };
+    } catch (error) {
+      return {
+        error: error,
+      };
+    }
+  };
   const getUserInfo = async ({overrideAccount}: {overrideAccount?: string}) => {
     if (!pushUser)
       return {
@@ -214,6 +236,7 @@ const usePush = () => {
     sendMessage,
     resolveDomain,
     incomingMessageHandler,
+    addContact,
   };
 };
 

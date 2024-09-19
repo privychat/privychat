@@ -4,9 +4,9 @@ import {Button} from "../ui/button";
 import {Send} from "lucide-react";
 import usePush from "@/hooks/use-push";
 import {useAppContext} from "@/hooks/use-app-context";
-import {MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
+import {CHAT_TYPE, DEFAULT_PFP, MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
 import {generateRandomString} from "@/lib/utils";
-import {IChat} from "@/types";
+import {IChat, IFeeds} from "@/types";
 
 const ChatInput = () => {
   const [input, setInput] = useState<string>("");
@@ -14,8 +14,9 @@ const ChatInput = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {sendMessage} = usePush();
-  const {activeChat, setStreamMessage, chat, account} = useAppContext();
-  const {setFeedContent} = chat as IChat;
+  const {activeChat, activeChatTab, chat, account} = useAppContext();
+  const {setFeedContent, setFeeds, setRequests, feeds, requests} =
+    chat as IChat;
   const handleSend = async () => {
     if (input.trim().length === 0) return;
     setFeedContent((prev) => {
@@ -39,6 +40,79 @@ const ChatInput = () => {
         ],
       };
     });
+
+    //this is to update the sidebar with latest message
+    if (activeChatTab === CHAT_TYPE.REQUESTS) {
+      setRequests((prev) => {
+        if (!prev || !activeChat) return null;
+
+        let chatExists = false;
+
+        const updatedChats = prev.map((chat) => {
+          if (
+            chat.chatId === activeChat.chatId ||
+            chat.chatId === activeChat.did
+          ) {
+            chatExists = true;
+            return {
+              ...chat,
+              lastMessage: input,
+              lastMessageTimestamp: new Date().getTime(),
+            };
+          }
+          return chat;
+        });
+
+        if (!chatExists) {
+          // Add a new entry if the activeChat.chatId was not found
+          updatedChats.push({
+            chatId: activeChat.chatId,
+            did: activeChat.did,
+            profilePicture: DEFAULT_PFP,
+            lastMessage: input,
+            lastMessageTimestamp: new Date().getTime(),
+            isGroup: activeChat.isGroup,
+          });
+        }
+
+        return updatedChats;
+      });
+    } else {
+      setFeeds((prev) => {
+        if (!prev || !activeChat) return null;
+
+        let chatExists = false;
+
+        const updatedChats = prev.map((chat) => {
+          if (
+            chat.chatId === activeChat.chatId ||
+            chat.chatId === activeChat.did
+          ) {
+            chatExists = true;
+            return {
+              ...chat,
+              lastMessage: input,
+              lastMessageTimestamp: new Date().getTime(),
+            };
+          }
+          return chat;
+        });
+
+        if (!chatExists) {
+          // Add a new entry if the activeChat.chatId was not found
+          updatedChats.push({
+            chatId: activeChat.chatId,
+            did: activeChat.did,
+            profilePicture: DEFAULT_PFP,
+            lastMessage: input,
+            lastMessageTimestamp: new Date().getTime(),
+            isGroup: activeChat.isGroup,
+          });
+        }
+
+        return updatedChats;
+      });
+    }
 
     sendMessage({
       message: input,

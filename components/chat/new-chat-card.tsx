@@ -1,8 +1,7 @@
 import {DEFAULT_PFP} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import {trimAddress} from "@/lib/utils";
-import {IChat} from "@/types";
-import {IFeeds} from "@pushprotocol/restapi";
+import {IChat, IFeeds} from "@/types";
 import Image from "next/image";
 import React from "react";
 
@@ -27,7 +26,7 @@ const NewChatItem = ({
           chatId: address,
           did: `eip155:${address}`,
           profilePicture: DEFAULT_PFP,
-          groupInformation: {},
+          isGroup: false,
         } as IFeeds);
         setFeedContent((prev) => ({
           ...prev,

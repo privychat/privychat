@@ -1,5 +1,5 @@
 import {CHAT_TYPE} from "@/constants";
-import {CONSTANTS, IFeeds, IUser, PushAPI} from "@pushprotocol/restapi";
+import {GroupDTO, GroupMember, IUser, PushAPI} from "@pushprotocol/restapi";
 
 interface IStreamMessage {
   event: string;
@@ -26,13 +26,27 @@ interface IMessage {
   timestamp: number;
   link: string;
 }
+interface IFeeds {
+  chatId: string;
+  profilePicture: string;
+  did: string;
+  lastMessage: string;
+  lastMessageTimestamp: number;
+  isGroup: boolean;
+  groupName?: string;
+  groupParticipants?: GroupDTO["members"];
+}
 interface IChat {
   feeds: IFeeds[] | null;
   setFeeds: React.Dispatch<React.SetStateAction<IFeeds[] | null>>;
   requests: IFeeds[] | null;
   setRequests: React.Dispatch<React.SetStateAction<IFeeds[] | null>>;
-  feedContent: {[key: string]: IMessage[] | null}; // chatid -> chat.history []
+  feedContent: {[key: string]: IMessage[] | null}; // chatid -> chat.history [] chats
   setFeedContent: React.Dispatch<
+    React.SetStateAction<{[key: string]: IMessage[] | null}>
+  >;
+  requestsContent: {[key: string]: IMessage[] | null}; // chatid -> chat.history [] requests
+  setRequestsContent: React.Dispatch<
     React.SetStateAction<{[key: string]: IMessage[] | null}>
   >;
   fetchingChats: {
@@ -58,15 +72,15 @@ interface IAppContext {
   setUserInfo: React.Dispatch<React.SetStateAction<IUser | null>>;
   chat: IChat | null;
   pushStream: any | null;
-  setPushStream: React.Dispatch<React.SetStateAction<any | null>>;
-  streamMessage: any | null;
-  setStreamMessage: React.Dispatch<React.SetStateAction<any | null>>;
   activeChat: IFeeds | null; // IFeed of the chat active
   setActiveChat: React.Dispatch<React.SetStateAction<IFeeds | null>>;
   chatSearch: string;
   setChatSearch: React.Dispatch<React.SetStateAction<string>>;
   activeChatTab: CHAT_TYPE;
   setActiveChatTab: React.Dispatch<React.SetStateAction<CHAT_TYPE>>;
+  initializePushUser: () => Promise<any>;
+  contactBook: {[key: string]: string};
+  setContactBook: React.Dispatch<React.SetStateAction<{[key: string]: string}>>;
 }
 
 interface IChatBubbleProps {
@@ -78,4 +92,11 @@ interface IChatBubbleProps {
   reactions?: IMessage[];
   cid: string;
 }
-export type {IAppContext, IChat, IMessage, IStreamMessage, IChatBubbleProps};
+export type {
+  IStreamMessage,
+  IMessage,
+  IFeeds,
+  IChat,
+  IAppContext,
+  IChatBubbleProps,
+};
