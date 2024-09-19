@@ -199,7 +199,7 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
         />
       )}
       <div
-        className={`relative flex flex-col rounded-md w-fit min-w-[20%] max-w-[60%] bg-secondary ${
+        className={`relative flex flex-col rounded-md w-fit min-w-[35%] md:min-w-[20%] max-w-[80%] md:max-w-[60%] bg-secondary ${
           reactions && reactions.length > 0 ? "mb-4" : "mb-0"
         }`}
       >
