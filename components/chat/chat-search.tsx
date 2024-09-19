@@ -33,7 +33,7 @@ const ChatSearch = () => {
         <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 w-[20px] text-white/30" />
         {chatSearch?.length > 0 && (
           <X
-            className="absolute top-1/2 right-3 transform -translate-y-1/2 w-[20px] text-white/30"
+            className="absolute top-1/2 right-3 transform -translate-y-1/2 w-[20px] text-white/30 cursor-pointer"
             onClick={() => {
               setChatSearch("");
             }}
