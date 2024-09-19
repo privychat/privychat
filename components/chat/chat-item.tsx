@@ -13,19 +13,26 @@ const ChatItem = ({
   openSheet?: () => void;
 }) => {
   const {reverseResolveDomain} = usePush();
-  const {setActiveChat, chat: chatContext, activeChat} = useAppContext();
+  const {
+    setActiveChat,
+    chat: chatContext,
+    activeChat,
+    contactBook,
+  } = useAppContext();
   const {feedContent} = chatContext as IChat;
 
   const [chatName, setChatName] = useState<string>();
   const timestamp = convertUnixTimestamp(chat.lastMessageTimestamp!);
 
   useEffect(() => {
-    if (chat.isGroup) {
+    if (chat?.did?.slice(7) in contactBook) {
+      setChatName(contactBook[chat.did.slice(7)]);
+    } else if (chat.isGroup) {
       setChatName(chat?.groupName as string);
     } else {
       setChatName(trimAddress(chat.did.slice(7)));
     }
-  }, [chat]);
+  }, [chat, contactBook]);
 
   // useEffect(() => {
   //   const fetchChatName = async () => {

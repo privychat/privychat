@@ -11,6 +11,7 @@ import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog";
 
 import EmojiPickerTab from "../ui/emoji-picker";
 import ChatMessageProcessor from "./chat-message-processor";
+import NewContactButton from "../contact-book/new-contact-button";
 const ChatBubble: React.FC<IChatBubbleProps> = ({
   message,
   sender,
@@ -20,7 +21,7 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
   reactions,
   cid,
 }) => {
-  const {account, activeChat} = useAppContext();
+  const {account, activeChat, contactBook} = useAppContext();
   const {getUserInfo, reverseResolveDomain} = usePush();
   const isSelfMessage = sender.slice(7) === account;
   const [senderImage, setSenderImage] = useState<string | null>(null);
@@ -203,10 +204,18 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
         }`}
       >
         {activeChat?.isGroup && !isSelfMessage && (
-          <p className="px-3 pt-3 pb-0 text-[12px]" style={{color: titleColor}}>
-            {senderName || trimAddress(sender.slice(7))}
-          </p>
+          <div className="flex flex-row gap-2 items-center px-3 pt-3 pb-0">
+            <p className=" text-[12px]" style={{color: titleColor}}>
+              {contactBook[sender.slice(7)] ||
+                senderName ||
+                trimAddress(sender.slice(7))}
+            </p>
+            {!(sender.slice(7) in contactBook) && (
+              <NewContactButton inputAddress={sender?.slice(7)} chat />
+            )}
+          </div>
         )}
+
         {renderMessageContent()}
         <span
           className={`text-[10px] mt-1 pb-1 pr-2 text-right text-muted-foreground ${

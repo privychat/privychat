@@ -79,6 +79,8 @@ interface IAppContext {
   activeChatTab: CHAT_TYPE;
   setActiveChatTab: React.Dispatch<React.SetStateAction<CHAT_TYPE>>;
   initializePushUser: () => Promise<any>;
+  contactBook: {[key: string]: string};
+  setContactBook: React.Dispatch<React.SetStateAction<{[key: string]: string}>>;
 }
 
 interface IChatBubbleProps {

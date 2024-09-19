@@ -7,6 +7,7 @@ import {AppContext} from "@/context/app-context";
 import {CHAT_TYPE, DEFAULT_PFP, STREAM_SOURCE} from "@/constants";
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {IFeeds, IMessage, IStreamMessage} from "@/types";
+import {getAddress} from "viem";
 
 export default function AppProvider({children}: {children: React.ReactNode}) {
   // User account related state
@@ -35,6 +36,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   const [requestsContent, setRequestsContent] = useState<
     Record<string, IMessage[] | null>
   >({});
+  const [contactBook, setContactBook] = useState<Record<string, string>>({});
 
   // UI state
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
@@ -56,7 +58,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       if (!userAccount && !userKey && !signer) return;
 
       const user = await PushAPI.initialize(signer, {
-        env: CONSTANTS.ENV.STAGING,
+        env: CONSTANTS.ENV.DEV,
         decryptedPGPPrivateKey: userKey,
         account: userAccount,
       });
@@ -324,6 +326,26 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     [pushUser, historyFetchedChats]
   );
 
+  const getUserContactBook = useCallback(async () => {
+    if (!account) return;
+    try {
+      const contactsResponse = await fetch(
+        `api/user?address=${getAddress(account)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({}),
+        }
+      );
+      if (!contactsResponse.ok) return;
+      const {data} = await contactsResponse.json();
+      if (!data) return;
+
+      setContactBook(data.contacts);
+    } catch (error) {
+      console.error("Failed to fetch user contacts:", error);
+    }
+  }, [account]);
+
   useEffect(() => {
     feedContentRef.current = feedContent;
   }, [feedContent]);
@@ -343,9 +365,20 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
   useEffect(() => {
     if (pushUser) {
-      Promise.all([getUserChats(), getUserRequests(), getUserDetails()]);
+      Promise.all([
+        getUserChats(),
+        getUserRequests(),
+        getUserDetails(),
+        getUserContactBook(),
+      ]);
     }
-  }, [pushUser, getUserChats, getUserRequests, getUserDetails]);
+  }, [
+    pushUser,
+    getUserChats,
+    getUserRequests,
+    getUserDetails,
+    getUserContactBook,
+  ]);
 
   useEffect(() => {
     const localUser = getUserKeys();
@@ -359,9 +392,6 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
   useEffect(() => {
     initializePushUser();
-    return () => {
-      pushStreamRef.current?.disconnect();
-    };
   }, [initializePushUser]);
 
   const contextValue = {
@@ -393,6 +423,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     activeChatTab,
     setActiveChatTab,
     initializePushUser,
+    contactBook,
+    setContactBook,
   };
 
   return (

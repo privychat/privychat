@@ -4,6 +4,7 @@ import ChatSidebar from "./chat/chat-sidebar";
 import ChatMessageWindow from "./chat/chat-message-window";
 
 import {Sheet, SheetContent} from "@/components/ui/sheet";
+import ContactBook from "./contact-book/contact-book";
 
 const ChatWindow = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,8 +25,9 @@ const ChatWindow = () => {
       <section className="md:hidden flex h-screen  w-screen  m-auto bg-muted/40 backdrop-blur-md overflow-hidden">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <section className="w-full flex flex-col">
-            <div className=" bg-black scroll-m-20 px-4 pt-4 ">
+            <div className=" bg-black scroll-m-20 px-4 pt-4 flex flex-row justify-between items-center">
               <h3 className="text-2xl font-semibold tracking-tight"> Chats</h3>
+              <ContactBook />
             </div>
             <ChatSidebar
               openSheet={() => {

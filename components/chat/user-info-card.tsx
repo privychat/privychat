@@ -1,9 +1,7 @@
-import {DEFAULT_PFP} from "@/constants";
-import {useAppContext} from "@/hooks/use-app-context";
-import {removeUserKeys, trimAddress} from "@/lib/utils";
+import React, {useState} from "react";
 import Image from "next/image";
-import React from "react";
 import {useDisconnect, useEnsName} from "wagmi";
+import {usePrivy} from "@privy-io/react-auth";
 import {EllipsisVertical} from "lucide-react";
 import {
   DropdownMenu,
@@ -11,8 +9,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {usePrivy} from "@privy-io/react-auth";
+
+import {DEFAULT_PFP} from "@/constants";
+import {useAppContext} from "@/hooks/use-app-context";
+import {removeUserKeys, trimAddress} from "@/lib/utils";
 import {IChat} from "@/types";
+import ContactBook from "../contact-book/contact-book";
 
 const UserInfoCard = () => {
   const {authenticated, logout} = usePrivy();
@@ -22,9 +24,12 @@ const UserInfoCard = () => {
   const {data: ensName} = useEnsName({
     address: userInfo?.did.slice(7)! as `0x${string}`,
   });
-
   const {disconnect} = useDisconnect();
-  const {setIsUserAuthenticated, setPushUser} = useAppContext();
+  const {setIsUserAuthenticated, setPushUser, contactBook} = useAppContext();
+
+  // ui state
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
   const resetAppState = () => {
     setPushUser(null);
     setIsUserAuthenticated(false);
@@ -44,8 +49,9 @@ const UserInfoCard = () => {
     removeUserKeys();
     resetAppState();
   };
+
   return (
-    <div className="rounded-md h-16 bg-black/80 border-[1px] border-gray-500 border-opacity-50  flex flex-row gap-2 items-center px-4">
+    <div className="rounded-md h-16 bg-black/80 border-[1px] border-gray-500 border-opacity-50 flex flex-row gap-2 items-center px-4">
       <Image
         src={userInfo?.profile.picture || DEFAULT_PFP}
         alt="avatar"
@@ -59,19 +65,23 @@ const UserInfoCard = () => {
           {ensName ?? trimAddress(userInfo?.did.slice(7)!)}
         </p>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <EllipsisVertical className="cursor-pointer" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="border-gray-700">
-          <DropdownMenuLabel
-            onClick={handleLogout}
-            className="cursor-pointer font-light text-sm"
-          >
-            Logout
-          </DropdownMenuLabel>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex flex-row gap-2">
+        <ContactBook />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <EllipsisVertical className="cursor-pointer" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="border-gray-700">
+            <DropdownMenuLabel
+              onClick={handleLogout}
+              className="cursor-pointer font-light text-sm"
+            >
+              Logout
+            </DropdownMenuLabel>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 };
