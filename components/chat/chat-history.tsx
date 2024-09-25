@@ -194,7 +194,7 @@ const ChatMessagesContainer: React.FC = () => {
     <div
       ref={scrollRef}
       onScroll={handleScroll}
-      className="rounded-md flex-1 mx-2 bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 flex flex-col overflow-y-auto p-4 gap-4"
+      className="rounded-md flex-1 mx-2 bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-10 flex flex-col overflow-y-auto p-4 gap-4"
     >
       <FetchingMoreMessagesLoader
         showLoader={loading}
