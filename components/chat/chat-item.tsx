@@ -71,11 +71,11 @@ const ChatItem = ({
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <div className="flex flex-row justify-between">
-          <span className="text-sm font-medium  w-[75%] text-nowrap text-ellipsis overflow-x-hidden">
+          <span className="text-sm font-medium  flex-1 text-nowrap text-ellipsis overflow-x-hidden">
             {chatName}
           </span>
 
-          <span className="text-xs text-muted-foreground pl-1 w-[25%] text-right">
+          <span className="text-xs text-muted-foreground pl-1 w-fit text-right">
             {timestamp ?? ""}
           </span>
         </div>
