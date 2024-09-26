@@ -284,7 +284,6 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
             limit: 15,
           });
           if (!history) return;
-
           const historyFormatted: IMessage[] = history
             .map((msg) => ({
               cid: msg.cid,
@@ -292,7 +291,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
               from: msg.fromDID,
               type: msg.messageType,
               messageContent: {
-                content: msg.messageObj?.content ?? "",
+                content: msg.messageObj?.content ?? msg.messageContent ?? "",
                 ...(msg.messageObj?.reference && {
                   reference: msg.messageObj.reference,
                 }),

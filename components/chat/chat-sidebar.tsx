@@ -66,9 +66,6 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
     filterChats();
   }, [chatSearch]);
 
-  useEffect(() => {
-    console.log(feeds);
-  }, [feeds]);
   return (
     <div className="rounded-md h-20  flex flex-col flex-1 gap-2 py-1 bg-black md:border-[1px] border-gray-500 border-opacity-50">
       <ChatSearch />

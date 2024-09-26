@@ -11,21 +11,21 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   const {activeChat, contactBook} = useAppContext();
   const {reverseResolveDomain} = usePush();
   const [chatName, setChatName] = useState<string>();
-  // const fetchDomainName = async () => {
-  //   if (!activeChat?.did || activeChat?.isGroup) {
-  //     return;
-  //   }
+  const fetchDomainName = async () => {
+    if (!activeChat?.did || activeChat?.isGroup) {
+      return;
+    }
 
-  //   const name = await reverseResolveDomain(activeChat?.did.slice(7)!);
-  //   if ("error" in name) {
-  //     return;
-  //   }
-  //   setChatName(name.name[0] ?? trimAddress(activeChat?.did.slice(7)!));
-  // };
+    const name = await reverseResolveDomain(activeChat?.did.slice(7)!);
+    if ("error" in name) {
+      return;
+    }
+    setChatName(name.name[0] ?? trimAddress(activeChat?.did.slice(7)!));
+  };
 
-  // useEffect(() => {
-  //   fetchDomainName();
-  // }, [activeChat]);
+  useEffect(() => {
+    fetchDomainName();
+  }, [activeChat]);
 
   useEffect(() => {
     if (activeChat && activeChat?.did?.slice(7) in contactBook) {

@@ -1,12 +1,12 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Input} from "../ui/input";
 import {Button} from "../ui/button";
-import {Send} from "lucide-react";
+import {SendHorizontal} from "lucide-react";
 import usePush from "@/hooks/use-push";
 import {useAppContext} from "@/hooks/use-app-context";
 import {CHAT_TYPE, DEFAULT_PFP, MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
 import {generateRandomString} from "@/lib/utils";
-import {IChat, IFeeds} from "@/types";
+import {IChat} from "@/types";
 
 const ChatInput = () => {
   const [input, setInput] = useState<string>("");
@@ -132,13 +132,13 @@ const ChatInput = () => {
 
   return (
     <div
-      className={`flex flex-row items-center justify-center h-14 rounded-md p-2 pt-1 ${
+      className={`flex flex-row items-center justify-center h-14 rounded-md gap-2 p-2 pt-1 ${
         isFocused ? "mb-1" : "mb-8"
       } md:mb-1`}
     >
       <Input
         ref={inputRef}
-        className="w-full h-full bg-secondary rounded-full rounded-r-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
+        className="w-full h-full bg-secondary rounded-md text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
         placeholder="Type a message"
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -152,10 +152,10 @@ const ChatInput = () => {
         inputMode="search"
       />
       <Button
-        className="bg-primary h-full cursor-pointer rounded-full rounded-l-none"
+        className="bg-primary h-full p-2 px-3 cursor-pointer rounded-md"
         onClick={handleSend}
       >
-        <Send />
+        <SendHorizontal />
       </Button>
     </div>
   );

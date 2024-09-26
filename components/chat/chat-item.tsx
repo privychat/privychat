@@ -34,21 +34,21 @@ const ChatItem = ({
     }
   }, [chat, contactBook]);
 
-  // useEffect(() => {
-  //   const fetchChatName = async () => {
-  //     if (!chat.did || chat.groupInformation?.chatId) {
-  //       return;
-  //     }
-  //     const name = await reverseResolveDomain(chat.did.slice(7));
-  //     if ("error" in name) {
-  //       return;
-  //     }
-  //     if (name.name.length > 0) {
-  //       setChatName(name.name[0]);
-  //     }
-  //   };
-  //   fetchChatName();
-  // }, []);
+  useEffect(() => {
+    const fetchChatName = async () => {
+      if (!chat.did || chat.isGroup) {
+        return;
+      }
+      const name = await reverseResolveDomain(chat.did.slice(7));
+      if ("error" in name) {
+        return;
+      }
+      if (name.name.length > 0) {
+        setChatName(name.name[0]);
+      }
+    };
+    fetchChatName();
+  }, [chat]);
   return (
     <div
       className={`relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 border-[1px] border-gray-800/50 hover:border-gray-800 ${
@@ -71,11 +71,11 @@ const ChatItem = ({
       />
       <div className="flex flex-col gap-2 w-full overflow-x-hidden">
         <div className="flex flex-row justify-between">
-          <span className="text-sm font-medium  w-[75%] text-nowrap text-ellipsis overflow-x-hidden">
+          <span className="text-sm font-medium  flex-1 text-nowrap text-ellipsis overflow-x-hidden">
             {chatName}
           </span>
 
-          <span className="text-xs text-muted-foreground pl-1 w-[25%] text-right">
+          <span className="text-xs text-muted-foreground pl-1 w-fit text-right">
             {timestamp ?? ""}
           </span>
         </div>
