@@ -152,7 +152,7 @@ const ChatInput = () => {
         inputMode="search"
       />
       <Button
-        className="bg-primary h-full cursor-pointer rounded-md"
+        className="bg-primary h-full p-2 px-3 cursor-pointer rounded-md"
         onClick={handleSend}
       >
         <SendHorizontal />
