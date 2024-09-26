@@ -34,21 +34,21 @@ const ChatItem = ({
     }
   }, [chat, contactBook]);
 
-  // useEffect(() => {
-  //   const fetchChatName = async () => {
-  //     if (!chat.did || chat.groupInformation?.chatId) {
-  //       return;
-  //     }
-  //     const name = await reverseResolveDomain(chat.did.slice(7));
-  //     if ("error" in name) {
-  //       return;
-  //     }
-  //     if (name.name.length > 0) {
-  //       setChatName(name.name[0]);
-  //     }
-  //   };
-  //   fetchChatName();
-  // }, []);
+  useEffect(() => {
+    const fetchChatName = async () => {
+      if (!chat.did || chat.isGroup) {
+        return;
+      }
+      const name = await reverseResolveDomain(chat.did.slice(7));
+      if ("error" in name) {
+        return;
+      }
+      if (name.name.length > 0) {
+        setChatName(name.name[0]);
+      }
+    };
+    fetchChatName();
+  }, [chat]);
   return (
     <div
       className={`relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 border-[1px] border-gray-800/50 hover:border-gray-800 ${

@@ -1,11 +1,14 @@
 import axios from "axios";
 import {NextRequest, NextResponse} from "next/server";
-import {createPublicClient, http, namehash} from "viem";
-import {mainnet} from "viem/chains";
+import Redis from "ioredis";
+
+// Initialize Redis client
+const redis = new Redis(process.env.REDIS_URL!);
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const domain = searchParams.get("domain");
+
   if (!domain) {
     return NextResponse.json({
       error: "Domain is required",
@@ -13,6 +16,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const cachedResult = await redis.get(`domain:${domain}`);
+    if (cachedResult) {
+      return NextResponse.json({
+        address: cachedResult,
+        cached: true,
+      });
+    }
+
     const searchUDName = async (domain: string) => {
       const resolvedDomain = await axios.get(
         `https://api.unstoppabledomains.com/resolve/domains/${domain}`,
@@ -26,8 +37,14 @@ export async function GET(req: NextRequest) {
     };
 
     const address = await searchUDName(domain);
+
+    if (address) {
+      await redis.set(`domain:${domain}`, address);
+    }
+
     return NextResponse.json({
       address,
+      cached: false,
     });
   } catch (error) {
     return NextResponse.json({

@@ -43,10 +43,10 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
           setSenderImage(member.image);
         }
 
-        // const name = await reverseResolveDomain(sender.slice(7));
-        // if (!("error" in name)) {
-        //   setSenderName(name.name[0]);
-        // }
+        const name = await reverseResolveDomain(sender.slice(7));
+        if (!("error" in name)) {
+          setSenderName(name.name[0]);
+        }
       }
     };
 

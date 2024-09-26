@@ -1,19 +1,37 @@
 import axios from "axios";
 import {NextRequest, NextResponse} from "next/server";
-import {createPublicClient, http, namehash} from "viem";
+import {createPublicClient, http} from "viem";
 import {mainnet} from "viem/chains";
+import Redis from "ioredis";
+
+const redis = new Redis(process.env.REDIS_URL!);
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const address = searchParams.get("address");
 
-  const publicClient = createPublicClient({
-    chain: mainnet,
-    transport: http(
-      `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
-    ),
-  });
+  if (!address) {
+    return NextResponse.json({
+      error: "Address is required",
+    });
+  }
+
   try {
+    // Check if the result is already in Redis
+    const cachedResult = await redis.get(address);
+    if (cachedResult) {
+      return NextResponse.json(JSON.parse(cachedResult));
+    }
+
+    console.log("Fetching from API");
+
+    const publicClient = createPublicClient({
+      chain: mainnet,
+      transport: http(
+        `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+      ),
+    });
+
     const searchUDName = async (address: string) => {
       const resolvedDomain = await axios.get(
         `https://api.unstoppabledomains.com/resolve/owners/${address}/domains`,
@@ -34,18 +52,16 @@ export async function GET(req: NextRequest) {
       });
       return ensName;
     };
-    if (!address) {
-      return NextResponse.json({
-        error: "Address is required",
-      });
-    }
 
     const [udName, ensName] = await Promise.all([
       searchUDName(address),
       searchENSName(address),
     ]);
-    const names = [udName, ensName].filter(Boolean);
-    return NextResponse.json(names.flat());
+    const names = [udName, ensName].filter(Boolean).flat();
+
+    if (names.length > 0) await redis.set(address, JSON.stringify(names));
+
+    return NextResponse.json(names);
   } catch (error) {
     return NextResponse.json({
       error: error,
