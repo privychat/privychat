@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
   try {
     const user = await User.findOne({address: getAddress(address)});
     if (!user) {
+      const user = await User.create({address: getAddress(address)});
       return NextResponse.json(
         {success: false, error: "User not found"},
         {status: 404}

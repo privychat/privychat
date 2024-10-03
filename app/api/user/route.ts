@@ -66,6 +66,7 @@ async function getUser(address: string) {
   try {
     const user = await User.findOne({address});
     if (!user) {
+      const user = await User.create({address: getAddress(address)});
       return {success: false, error: "User not found"};
     }
     return {
