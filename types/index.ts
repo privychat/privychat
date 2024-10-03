@@ -95,6 +95,7 @@ interface IChatBubbleProps {
   messageType: string;
   reactions?: IMessage[];
   cid: string;
+  lastSeenTimeStampSender?: number;
 }
 
 interface IlastSeenInfo {

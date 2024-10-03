@@ -12,6 +12,7 @@ import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog";
 import EmojiPickerTab from "../ui/emoji-picker";
 import ChatMessageProcessor from "./chat-message-processor";
 import NewContactButton from "../contact-book/new-contact-button";
+import {CheckCheck} from "lucide-react";
 const ChatBubble: React.FC<IChatBubbleProps> = ({
   message,
   sender,
@@ -20,6 +21,7 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
   messageType,
   reactions,
   cid,
+  lastSeenTimeStampSender,
 }) => {
   const {account, activeChat, contactBook} = useAppContext();
   const {getUserInfo, reverseResolveDomain} = usePush();
@@ -217,15 +219,27 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
         )}
 
         {renderMessageContent()}
-        <span
-          className={`text-[10px] mt-1 pb-1 pr-2 text-right text-muted-foreground ${
-            messageType !== MESSAGE_TYPE.TEXT
-              ? "absolute bottom-0 right-0 font-medium"
-              : ""
-          }`}
-        >
-          {convertUnixTimestampToHHMM(timestamp)}
-        </span>
+        <div className="flex flex-row justify-end items-center">
+          <span
+            className={`text-[10px] mt-1 pb-1 pr-2 text-right text-muted-foreground ${
+              messageType !== MESSAGE_TYPE.TEXT
+                ? "absolute bottom-0 right-0 font-medium"
+                : ""
+            }`}
+          >
+            {convertUnixTimestampToHHMM(timestamp)}
+          </span>
+          {sender.slice(7).toLowerCase() === account!.toLowerCase() && (
+            <CheckCheck
+              size={"16px"}
+              className={`mr-2 ${
+                lastSeenTimeStampSender && lastSeenTimeStampSender > timestamp
+                  ? "text-blue-400 "
+                  : "text-muted-foreground"
+              }`}
+            />
+          )}
+        </div>
         {renderReactions()}
         {userHoverOnMessage && (
           <EmojiPickerTab

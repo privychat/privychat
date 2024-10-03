@@ -3,7 +3,7 @@ import React, {useEffect, useRef, useState, useCallback, useMemo} from "react";
 import {CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
-import {IChat, IMessage} from "@/types";
+import {IChat, IlastSeenInfo, IMessage} from "@/types";
 import ChatBubble from "./chat-bubble";
 import {assignColorsToParticipants, convertUnixTimestamp} from "@/lib/utils";
 import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
@@ -18,6 +18,9 @@ const ChatMessagesContainer: React.FC = () => {
     Record<string, string>
   >({});
   const [isNearBottom, setIsNearBottom] = useState(true);
+  const [senderLastSeenInfo, setSenderLastSeenInfo] = useState<
+    number | undefined
+  >();
 
   // Refs
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -170,6 +173,30 @@ const ChatMessagesContainer: React.FC = () => {
     updateLastSeenMessage();
   }, [activeChat, account, currentMessages, setLastSeenInfo]);
 
+  useEffect(() => {
+    const getSenderLastSeenInfo = async () => {
+      if (!activeChat?.chatId || !activeChat.did || activeChat.isGroup) return;
+      const lastSeenInfo = await axios.get(
+        `/api/lastseen?address=${activeChat.did.slice(7)}`
+      );
+
+      if (lastSeenInfo.data.success && lastSeenInfo.data.lastSeen) {
+        if (
+          lastSeenInfo.data.lastSeen.some((obj: IlastSeenInfo) =>
+            obj.chatId.includes(activeChat.chatId)
+          )
+        ) {
+          const lastSeenInfoItem = lastSeenInfo.data.lastSeen.find(
+            (obj: IlastSeenInfo) => obj.chatId === activeChat.chatId
+          );
+          if (lastSeenInfoItem)
+            setSenderLastSeenInfo(lastSeenInfoItem.timestamp);
+        }
+      }
+    };
+    getSenderLastSeenInfo();
+  }, [activeChat, account, setLastSeenInfo]);
+
   const renderMessage = useCallback(
     (msg: IMessage, index: number, messages: IMessage[]) => {
       if (msg.type === MESSAGE_TYPE.REACTION) return null;
@@ -196,11 +223,12 @@ const ChatMessagesContainer: React.FC = () => {
             messageType={msg.type}
             reactions={reactions}
             cid={msg.cid}
+            lastSeenTimeStampSender={senderLastSeenInfo}
           />
         </React.Fragment>
       );
     },
-    [groupParticipants, showTimestampBadge]
+    [groupParticipants, showTimestampBadge, senderLastSeenInfo]
   );
 
   const renderMessages = useMemo(() => {

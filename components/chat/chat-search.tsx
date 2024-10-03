@@ -10,7 +10,7 @@ const ChatSearch = () => {
     <section className=" bg-black rounded-md cursor-text p-2">
       <div className="relative" onClick={() => setIsFocused(true)}>
         <Input
-          className="w-full h-9 bg-secondary rounded-full text-sm z-10 pl-10"
+          className="w-full h-9 bg-secondary rounded-full text-sm z-100 pl-10"
           onChange={(e) => setChatSearch(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}

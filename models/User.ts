@@ -23,6 +23,7 @@ const LastSeenItemSchema = new mongoose.Schema(
     lastMessageHash: {
       type: String,
       required: true,
+      unique: true,
     },
   },
   {_id: false}
