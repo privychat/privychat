@@ -1,16 +1,18 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Textarea} from "@/components/ui/textarea";
 import {Button} from "../ui/button";
-import {SendHorizontal} from "lucide-react";
+import {SendHorizontal, Smile} from "lucide-react";
 import usePush from "@/hooks/use-push";
 import {useAppContext} from "@/hooks/use-app-context";
 import {CHAT_TYPE, DEFAULT_PFP, MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
 import {generateRandomString} from "@/lib/utils";
 import {IChat} from "@/types";
+import EmojiPicker, {Theme} from "emoji-picker-react";
 
 const ChatInput = () => {
   const [input, setInput] = useState<string>("");
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const {sendMessage} = usePush();
@@ -131,10 +133,28 @@ const ChatInput = () => {
 
   return (
     <div
-      className={`flex flex-row items-center justify-center h-14 rounded-md gap-2 p-2 pt-1 ${
+      className={`relative flex flex-row items-center justify-center h-14 rounded-md gap-2 p-2 pt-1 ${
         isFocused ? "mb-1" : "mb-8"
       } md:mb-1`}
     >
+      <div className="h-full bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 rounded-md flex items-center justify-center">
+        <Smile
+          className="text-white/50 cursor-pointer mx-2"
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+        />
+      </div>
+
+      <div className="absolute bottom-full mb-2 left-2">
+        <EmojiPicker
+          theme={Theme.DARK}
+          skinTonesDisabled={true}
+          onEmojiClick={(e, emoji) => {
+            setInput((prev) => prev + e.emoji);
+          }}
+          open={showEmojiPicker}
+        />
+      </div>
+
       <Textarea
         ref={inputRef}
         className="w-full h-full  bg-secondary rounded-md text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none resize-none overflow-y-auto"
@@ -146,6 +166,7 @@ const ChatInput = () => {
             return;
           }
           if (e.key === "Enter") {
+            e.preventDefault();
             handleSend();
           }
         }}
