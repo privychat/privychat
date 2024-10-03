@@ -11,9 +11,11 @@ import usePush from "@/hooks/use-push";
 import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 import {isAddress} from "viem";
 import NewChatItem from "./new-chat-card";
+import {searchObjectValues} from "@/lib/utils";
 
 const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
-  const {activeChatTab, chatSearch, chat, account} = useAppContext();
+  const {activeChatTab, chatSearch, chat, account, contactBook} =
+    useAppContext();
   const {resolveDomain} = usePush();
   const {feeds} = chat as IChat;
   const [fetchingDomain, setFetchingDomain] = useState(false);
@@ -60,7 +62,21 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
             .includes(search.toLowerCase());
         });
 
-        setFilteredChats(updatedFilteredChats);
+        const searchContacts = searchObjectValues(contactBook, search);
+        const searchContactsChats = feeds?.filter((chat) => {
+          return Object.keys(searchContacts).some(
+            (did) => chat?.did?.toLowerCase() === `eip155:${did.toLowerCase()}`
+          );
+        });
+
+        setFilteredChats(
+          Array.from(
+            new Set([
+              ...(updatedFilteredChats || []),
+              ...(searchContactsChats || []),
+            ])
+          )
+        );
       }
     };
     filterChats();

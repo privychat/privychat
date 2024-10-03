@@ -111,6 +111,31 @@ function extractWebLinks(message: string): string[] {
   return matches ? matches : [];
 }
 
+function searchObjectValues<T>(
+  obj: Record<string, T>,
+  searchString: string,
+  caseSensitive: boolean = false
+): Record<string, T> {
+  // Convert search string to lowercase if case-insensitive
+  const searchTerm = caseSensitive ? searchString : searchString.toLowerCase();
+
+  // Use Object.entries() to get an array of [key, value] pairs, then filter and reduce
+  return Object.entries(obj).reduce(
+    (result: Record<string, T>, [key, value]) => {
+      // Convert value to string and to lowercase if case-insensitive
+      const strValue = String(value);
+      const compareValue = caseSensitive ? strValue : strValue.toLowerCase();
+
+      // Check if the value includes the search term
+      if (compareValue.includes(searchTerm)) {
+        result[key] = value;
+      }
+      return result;
+    },
+    {}
+  );
+}
+
 export {
   cn,
   saveUserKeys,
@@ -123,4 +148,5 @@ export {
   playNotification,
   generateRandomString,
   extractWebLinks,
+  searchObjectValues,
 };
