@@ -183,8 +183,12 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
       className={`relative flex flex-row ${
         isSelfMessage ? "justify-end" : "justify-start "
       }`}
-      onMouseEnter={() => setUserHoverOnMessage(true)}
+      onMouseEnter={() => {
+        if (showEmojiPicker) return;
+        setUserHoverOnMessage(true);
+      }}
       onMouseLeave={() => {
+        if (showEmojiPicker) return;
         setUserHoverOnMessage(false);
         setShowEmojiPicker(false);
       }}
@@ -247,6 +251,10 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
             setShowEmojiPicker={setShowEmojiPicker}
             isSelfMessage={isSelfMessage}
             messageCid={cid}
+            onClose={() => {
+              setUserHoverOnMessage(false);
+              setShowEmojiPicker(false);
+            }}
           />
         )}
       </div>{" "}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {SmileIcon} from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import {Theme} from "emoji-picker-react";
@@ -13,11 +13,13 @@ const EmojiPickerTab = ({
   setShowEmojiPicker,
   isSelfMessage,
   messageCid,
+  onClose,
 }: {
   showEmojiPicker: boolean;
   isSelfMessage: boolean;
   setShowEmojiPicker: React.Dispatch<React.SetStateAction<boolean>>;
   messageCid: string;
+  onClose?: () => void;
 }) => {
   const {chat, activeChat, account} = useAppContext();
   const {setFeedContent} = chat as IChat;
@@ -53,11 +55,28 @@ const EmojiPickerTab = ({
       type: MESSAGE_TYPE.REACTION,
     });
   };
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        onClose &&
+        !e.composedPath().includes(document.getElementById("emoji-picker")!)
+      ) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [onClose]);
   return (
     <div
       className={`absolute bottom-2 p-0 ${
         isSelfMessage ? "-left-10" : "-right-10"
       }`}
+      id="emoji-picker"
     >
       <div className="relative">
         <SmileIcon
@@ -77,6 +96,7 @@ const EmojiPickerTab = ({
               reactionsDefaultOpen={true}
               skinTonesDisabled={true}
               onReactionClick={handleSendReaction}
+              allowExpandReactions={false}
             />
           </div>
         )}
