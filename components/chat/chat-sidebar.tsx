@@ -141,6 +141,9 @@ const FeedsTab = ({openSheet}: {openSheet?: () => void}) => {
   const {chat} = useAppContext();
 
   const {feeds, fetchingChats, pinnedChats} = chat as IChat;
+  const [resolvedNames, setResolvedNames] = useState<{[key: string]: string}>(
+    {}
+  );
 
   return (
     <section className="w-full h-full flex-1 flex flex-col overflow-y-auto">

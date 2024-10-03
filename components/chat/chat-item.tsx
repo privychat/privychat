@@ -9,11 +9,12 @@ import React, {useEffect, useState} from "react";
 const ChatItem = ({
   chat,
   openSheet,
+  nftName,
 }: {
   chat: IFeeds;
   openSheet?: () => void;
+  nftName?: string;
 }) => {
-  const {reverseResolveDomain} = usePush();
   const {
     setActiveChat,
     chat: chatContext,
@@ -22,7 +23,7 @@ const ChatItem = ({
   } = useAppContext();
   const {pinnedChats, lastSeenInfo, feedContent} = chatContext as IChat;
 
-  const [chatName, setChatName] = useState<string>();
+  const [chatName, setChatName] = useState<string | undefined>(undefined);
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const timestamp = convertUnixTimestamp(chat.lastMessageTimestamp!);
 
@@ -31,29 +32,16 @@ const ChatItem = ({
       setChatName(contactBook[chat.did.slice(7)]);
     } else if (chat.isGroup) {
       setChatName(chat?.groupName as string);
+    } else if (nftName && chatName === undefined) {
+      setChatName(nftName);
     } else {
       setChatName(trimAddress(chat.did.slice(7)));
     }
-  }, [chat, contactBook]);
-
-  useEffect(() => {
-    const fetchChatName = async () => {
-      if (!chat.did || chat.isGroup) {
-        return;
-      }
-      const name = await reverseResolveDomain(chat.did.slice(7));
-      if ("error" in name) {
-        return;
-      }
-      if (name.name.length > 0) {
-        setChatName(name.name[0]);
-      }
-    };
-    fetchChatName();
-  }, [chat, reverseResolveDomain]);
+  }, [chat, contactBook, nftName, chatName]);
 
   useEffect(() => {
     if (lastSeenInfo.length === 0 || !feedContent[chat.chatId]) return;
+
     const chatInLastSeenInfo = lastSeenInfo.find(
       (info) => info.chatId === chat.chatId
     );
@@ -63,7 +51,8 @@ const ChatItem = ({
     const unreadMessagesCount = feedContent[chat.chatId]?.filter(
       (message) => message.timestamp > chatInLastSeenInfo.timestamp
     ).length;
-    if (unreadMessagesCount) setUnreadMessages(unreadMessagesCount);
+    if (unreadMessagesCount != undefined)
+      setUnreadMessages(unreadMessagesCount);
   }, [lastSeenInfo, chat, feedContent]);
   return (
     <div

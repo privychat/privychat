@@ -30,7 +30,7 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   useEffect(() => {
     const fetchSenderInfo = async () => {
-      if (activeChat?.chatId) {
+      if (activeChat?.isGroup) {
         const member = activeChat?.groupParticipants?.find(
           (member) => member.wallet === sender
         );
