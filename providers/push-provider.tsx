@@ -73,7 +73,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
       const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
       setupStreamListeners(stream);
-      stream.connect();
+
+      await stream.connect();
 
       pushStreamRef.current = stream;
     } catch (error) {
@@ -391,6 +392,9 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
   useEffect(() => {
     initializePushUser();
+    return () => {
+      if (pushStreamRef.current) pushStreamRef.current.disconnect();
+    };
   }, [initializePushUser]);
 
   const contextValue = {
