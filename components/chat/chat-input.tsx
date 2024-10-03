@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Input} from "../ui/input";
+import {Textarea} from "@/components/ui/textarea";
 import {Button} from "../ui/button";
 import {SendHorizontal} from "lucide-react";
 import usePush from "@/hooks/use-push";
@@ -11,12 +11,11 @@ import {IChat} from "@/types";
 const ChatInput = () => {
   const [input, setInput] = useState<string>("");
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const {sendMessage} = usePush();
   const {activeChat, activeChatTab, chat, account} = useAppContext();
-  const {setFeedContent, setFeeds, setRequests, feeds, requests} =
-    chat as IChat;
+  const {setFeedContent, setFeeds, setRequests} = chat as IChat;
   const handleSend = async () => {
     if (input.trim().length === 0) return;
     setFeedContent((prev) => {
@@ -136,13 +135,16 @@ const ChatInput = () => {
         isFocused ? "mb-1" : "mb-8"
       } md:mb-1`}
     >
-      <Input
+      <Textarea
         ref={inputRef}
-        className="w-full h-full bg-secondary rounded-md text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
+        className="w-full h-full  bg-secondary rounded-md text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none resize-none overflow-y-auto"
         placeholder="Type a message"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
+          if (e.key === "Enter" && e.shiftKey) {
+            return;
+          }
           if (e.key === "Enter") {
             handleSend();
           }
