@@ -227,6 +227,36 @@ const usePush = () => {
       };
     });
   };
+
+  const pinChat = async (chatId: string) => {
+    try {
+      const response = await axios.post(`/api/pin-chat`, {
+        chatId,
+        account,
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        error: error,
+      };
+    }
+  };
+
+  const removePinChat = async (chatId: string) => {
+    try {
+      const response = await axios.delete(`/api/pin-chat`, {
+        data: {
+          chatId,
+          account,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        error: error,
+      };
+    }
+  };
   return {
     getUserInfo,
     getChats,
@@ -237,6 +267,8 @@ const usePush = () => {
     resolveDomain,
     incomingMessageHandler,
     addContact,
+    pinChat,
+    removePinChat,
   };
 };
 

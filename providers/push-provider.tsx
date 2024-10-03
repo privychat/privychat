@@ -8,6 +8,7 @@ import {CHAT_TYPE, DEFAULT_PFP, STREAM_SOURCE} from "@/constants";
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {IFeeds, IMessage, IStreamMessage} from "@/types";
 import {getAddress} from "viem";
+import axios from "axios";
 
 export default function AppProvider({children}: {children: React.ReactNode}) {
   // User account related state
@@ -37,7 +38,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     Record<string, IMessage[] | null>
   >({});
   const [contactBook, setContactBook] = useState<Record<string, string>>({});
-
+  const [pinnedChats, setPinnedChats] = useState<string[]>([]);
   // UI state
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
@@ -345,6 +346,19 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       console.error("Failed to fetch user contacts:", error);
     }
   }, [account]);
+  const getUserPinnedChats = useCallback(async () => {
+    if (!account) return;
+    try {
+      const {data} = await axios.get(
+        `/api/pin-chat?address=${getAddress(account)}`
+      );
+      if (!data) return;
+
+      setPinnedChats(data.pinnedChats);
+    } catch (error) {
+      console.error("Failed to fetch user contacts:", error);
+    }
+  }, [account]);
 
   useEffect(() => {
     feedContentRef.current = feedContent;
@@ -370,6 +384,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
         getUserRequests(),
         getUserDetails(),
         getUserContactBook(),
+        getUserPinnedChats(),
       ]);
     }
   }, [
@@ -417,6 +432,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       chatHistoryLoaders,
       requestsContent,
       setRequestsContent,
+      pinnedChats,
+      setPinnedChats,
     },
     pushStream: pushStreamRef,
     activeChat,

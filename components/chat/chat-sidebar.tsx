@@ -124,7 +124,7 @@ const ChatSidebar = ({openSheet}: {openSheet?: () => void}) => {
 const FeedsTab = ({openSheet}: {openSheet?: () => void}) => {
   const {chat} = useAppContext();
 
-  const {feeds, fetchingChats} = chat as IChat;
+  const {feeds, fetchingChats, pinnedChats} = chat as IChat;
 
   return (
     <section className="w-full h-full flex-1 flex flex-col overflow-y-auto">
@@ -139,6 +139,11 @@ const FeedsTab = ({openSheet}: {openSheet?: () => void}) => {
         feeds &&
         feeds
           .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+          .sort((a, b) => {
+            if (pinnedChats.includes(a.chatId)) return -1;
+            if (pinnedChats.includes(b.chatId)) return 1;
+            return 0;
+          })
           .map((chat, index) => (
             <ChatItem
               key={index}
@@ -200,7 +205,7 @@ const RequestsTab = ({openSheet}: {openSheet?: () => void}) => {
 const GroupsTab = ({openSheet}: {openSheet?: () => void}) => {
   const {chat} = useAppContext();
 
-  const {feeds, fetchingChats} = chat as IChat;
+  const {feeds, fetchingChats, pinnedChats} = chat as IChat;
 
   return (
     <section className="w-full h-full flex-1 flex flex-col overflow-y-auto">
@@ -216,6 +221,11 @@ const GroupsTab = ({openSheet}: {openSheet?: () => void}) => {
         feeds
           .filter((chat) => chat.isGroup)
           .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+          .sort((a, b) => {
+            if (pinnedChats.includes(a.chatId)) return -1;
+            if (pinnedChats.includes(b.chatId)) return 1;
+            return 0;
+          })
           .map((chat, index) => (
             <ChatItem
               key={index}

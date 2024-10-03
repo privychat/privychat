@@ -2,6 +2,8 @@ import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {convertUnixTimestamp, trimAddress} from "@/lib/utils";
 import {IChat, IFeeds} from "@/types";
+import {PinRightIcon} from "@radix-ui/react-icons";
+import {Pin} from "lucide-react";
 import Image from "next/image";
 import React, {useEffect, useState} from "react";
 
@@ -19,7 +21,7 @@ const ChatItem = ({
     activeChat,
     contactBook,
   } = useAppContext();
-  const {feedContent} = chatContext as IChat;
+  const {pinnedChats} = chatContext as IChat;
 
   const [chatName, setChatName] = useState<string>();
   const timestamp = convertUnixTimestamp(chat.lastMessageTimestamp!);
@@ -79,13 +81,25 @@ const ChatItem = ({
             {timestamp ?? ""}
           </span>
         </div>
-        <span className="w-[90%] text-nowrap text-ellipsis overflow-x-hidden text-sm text-muted-foreground">
-          {chat.lastMessage}
-        </span>
+        <div className="flex flex-row gap-2 justify-between">
+          <span className="w-[90%] text-nowrap text-ellipsis overflow-x-hidden text-sm text-muted-foreground">
+            {chat.lastMessage}
+          </span>
+          <div className="flex justify-center items-center">
+            {pinnedChats.includes(chat.chatId) && (
+              <Pin size={"14px"} className="ml-20" />
+            )}
+            {/* <div className="flex justify-center items-center bg-[#24c55b] w-4 h-4 rounded-full ml-2 ">
+              <p
+                className="font-semibold text-muted text-xs p-0 m-0 "
+                style={{lineHeight: "4px"}}
+              >
+                1
+              </p>
+            </div> */}
+          </div>
+        </div>
       </div>
-      {/* <div className="absolute flex justify-center items-center bottom-2 right-4 bg-[#24c55b] w-5 h-5 rounded-full">
-        <p className="font-semibold text-muted text-sm">1</p>
-      </div> */}
     </div>
   );
 };

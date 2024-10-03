@@ -35,6 +35,10 @@ const UserSchema = new mongoose.Schema({
         )} contains invalid Ethereum addresses or non-string names!`,
     },
   },
+  pinnedChats: {
+    type: [String],
+    default: [],
+  },
 });
 
 const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);

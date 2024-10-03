@@ -45,6 +45,7 @@ export default function RootLayout({
           </PrivyWalletProvider>
           <Toaster />
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

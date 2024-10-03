@@ -60,6 +60,8 @@ interface IChat {
     };
   };
   chatHistoryLoaders: {[key: string]: boolean};
+  pinnedChats: string[];
+  setPinnedChats: React.Dispatch<React.SetStateAction<string[]>>;
 }
 interface IAppContext {
   isUserAuthenticated: boolean;
