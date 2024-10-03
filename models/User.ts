@@ -9,6 +9,24 @@ interface IUser extends Document {
   address: string;
   contacts: Contacts;
 }
+const LastSeenItemSchema = new mongoose.Schema(
+  {
+    chatId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    timestamp: {
+      type: Number,
+      required: true,
+    },
+    lastMessageHash: {
+      type: String,
+      required: true,
+    },
+  },
+  {_id: false}
+);
 
 const UserSchema = new mongoose.Schema({
   address: {
@@ -37,6 +55,11 @@ const UserSchema = new mongoose.Schema({
   },
   pinnedChats: {
     type: [String],
+    default: [],
+  },
+
+  lastSeen: {
+    type: [LastSeenItemSchema],
     default: [],
   },
 });

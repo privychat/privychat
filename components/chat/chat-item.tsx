@@ -2,7 +2,6 @@ import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {convertUnixTimestamp, trimAddress} from "@/lib/utils";
 import {IChat, IFeeds} from "@/types";
-import {PinRightIcon} from "@radix-ui/react-icons";
 import {Pin} from "lucide-react";
 import Image from "next/image";
 import React, {useEffect, useState} from "react";
@@ -21,9 +20,10 @@ const ChatItem = ({
     activeChat,
     contactBook,
   } = useAppContext();
-  const {pinnedChats} = chatContext as IChat;
+  const {pinnedChats, lastSeenInfo, feedContent} = chatContext as IChat;
 
   const [chatName, setChatName] = useState<string>();
+  const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const timestamp = convertUnixTimestamp(chat.lastMessageTimestamp!);
 
   useEffect(() => {
@@ -50,7 +50,21 @@ const ChatItem = ({
       }
     };
     fetchChatName();
-  }, [chat]);
+  }, [chat, reverseResolveDomain]);
+
+  useEffect(() => {
+    if (lastSeenInfo.length === 0 || !feedContent[chat.chatId]) return;
+    const chatInLastSeenInfo = lastSeenInfo.find(
+      (info) => info.chatId === chat.chatId
+    );
+
+    if (!chatInLastSeenInfo) return;
+
+    const unreadMessagesCount = feedContent[chat.chatId]?.filter(
+      (message) => message.timestamp > chatInLastSeenInfo.timestamp
+    ).length;
+    if (unreadMessagesCount) setUnreadMessages(unreadMessagesCount);
+  }, [lastSeenInfo, chat, feedContent]);
   return (
     <div
       className={`relative flex flex-row px-4 items-center gap-3 py-4  cursor-pointer rounded-md hover:bg-gray-800/50 border-[1px] border-gray-800/50 hover:border-gray-800 ${
@@ -89,14 +103,16 @@ const ChatItem = ({
             {pinnedChats.includes(chat.chatId) && (
               <Pin size={"14px"} className="ml-20" />
             )}
-            {/* <div className="flex justify-center items-center bg-[#24c55b] w-4 h-4 rounded-full ml-2 ">
-              <p
-                className="font-semibold text-muted text-xs p-0 m-0 "
-                style={{lineHeight: "4px"}}
-              >
-                1
-              </p>
-            </div> */}
+            {unreadMessages > 0 && (
+              <div className="flex justify-center items-center bg-[#24c55b] w-4 h-4 rounded-full ml-2 ">
+                <p
+                  className="font-semibold text-muted text-xs p-0 m-0 "
+                  style={{lineHeight: "4px"}}
+                >
+                  {unreadMessages > 10 ? "10+" : unreadMessages}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

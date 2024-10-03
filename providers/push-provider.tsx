@@ -6,7 +6,7 @@ import {CONSTANTS, Env, IUser, PushAPI} from "@pushprotocol/restapi";
 import {AppContext} from "@/context/app-context";
 import {CHAT_TYPE, DEFAULT_PFP, STREAM_SOURCE} from "@/constants";
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
-import {IFeeds, IMessage, IStreamMessage} from "@/types";
+import {IFeeds, IMessage, IStreamMessage, IlastSeenInfo} from "@/types";
 import {getAddress} from "viem";
 import axios from "axios";
 
@@ -39,6 +39,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   >({});
   const [contactBook, setContactBook] = useState<Record<string, string>>({});
   const [pinnedChats, setPinnedChats] = useState<string[]>([]);
+  const [lastSeenInfo, setLastSeenInfo] = useState<IlastSeenInfo[]>([]);
   // UI state
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
@@ -356,7 +357,21 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
       setPinnedChats(data.pinnedChats);
     } catch (error) {
-      console.error("Failed to fetch user contacts:", error);
+      console.error("Failed to fetch user pinned chats:", error);
+    }
+  }, [account]);
+  const getUserLastSeenInfo = useCallback(async () => {
+    if (!account) return;
+    try {
+      const {data} = await axios.get(
+        `/api/lastseen?address=${getAddress(account)}`
+      );
+
+      if (!data) return;
+
+      setLastSeenInfo(data.lastSeen);
+    } catch (error) {
+      console.error("Failed to fetch user lastseen:", error);
     }
   }, [account]);
 
@@ -385,6 +400,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
         getUserDetails(),
         getUserContactBook(),
         getUserPinnedChats(),
+        getUserLastSeenInfo(),
       ]);
     }
   }, [
@@ -393,6 +409,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     getUserRequests,
     getUserDetails,
     getUserContactBook,
+    getUserPinnedChats,
+    getUserLastSeenInfo,
   ]);
 
   useEffect(() => {
@@ -434,6 +452,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       setRequestsContent,
       pinnedChats,
       setPinnedChats,
+      lastSeenInfo,
+      setLastSeenInfo,
     },
     pushStream: pushStreamRef,
     activeChat,

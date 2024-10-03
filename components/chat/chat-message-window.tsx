@@ -1,9 +1,10 @@
-import React from "react";
+import React, {useEffect} from "react";
 import ChatInfoCard from "./chat-info-card";
 import ChatInput from "./chat-input";
 import {useAppContext} from "@/hooks/use-app-context";
 import {LockClosedIcon} from "@radix-ui/react-icons";
 import ChatMessagesContainer from "./chat-history";
+import axios from "axios";
 const ChatMessageWindow = ({closeSheet}: {closeSheet?: () => void}) => {
   const {activeChat} = useAppContext();
   return (

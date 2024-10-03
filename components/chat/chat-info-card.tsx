@@ -60,10 +60,6 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   }, [activeChat]);
 
   useEffect(() => {
-    console.log(pinnedChats);
-  }, [pinnedChats]);
-
-  useEffect(() => {
     if (activeChat && activeChat?.did?.slice(7) in contactBook) {
       setChatName(contactBook[activeChat.did.slice(7)]);
       return;

@@ -62,6 +62,8 @@ interface IChat {
   chatHistoryLoaders: {[key: string]: boolean};
   pinnedChats: string[];
   setPinnedChats: React.Dispatch<React.SetStateAction<string[]>>;
+  lastSeenInfo: IlastSeenInfo[];
+  setLastSeenInfo: React.Dispatch<React.SetStateAction<IlastSeenInfo[]>>;
 }
 interface IAppContext {
   isUserAuthenticated: boolean;
@@ -94,6 +96,12 @@ interface IChatBubbleProps {
   reactions?: IMessage[];
   cid: string;
 }
+
+interface IlastSeenInfo {
+  chatId: string;
+  timestamp: number;
+  lastMessageHash: string;
+}
 export type {
   IStreamMessage,
   IMessage,
@@ -101,4 +109,5 @@ export type {
   IChat,
   IAppContext,
   IChatBubbleProps,
+  IlastSeenInfo,
 };

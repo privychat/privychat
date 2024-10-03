@@ -8,6 +8,7 @@ import ChatBubble from "./chat-bubble";
 import {assignColorsToParticipants, convertUnixTimestamp} from "@/lib/utils";
 import FetchingMoreMessagesLoader from "../loaders/fetching-messages-loaders";
 import ChatHistoryLoader from "../loaders/chat-history-loader";
+import axios from "axios";
 
 const ChatMessagesContainer: React.FC = () => {
   // UI State
@@ -22,13 +23,14 @@ const ChatMessagesContainer: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Context
-  const {chat, activeChat, activeChatTab} = useAppContext();
+  const {chat, activeChat, activeChatTab, account} = useAppContext();
   const {
     feedContent,
     setRequestsContent,
     requestsContent,
     setFeedContent,
     chatHistoryLoaders,
+    setLastSeenInfo,
   } = chat as IChat;
   const {getChatHistory} = usePush();
 
@@ -145,6 +147,28 @@ const ChatMessagesContainer: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [activeChat, scrollToBottom]);
+
+  useEffect(() => {
+    const updateLastSeenMessage = async () => {
+      if (
+        !activeChat?.chatId ||
+        !currentMessages ||
+        currentMessages.length === 0
+      )
+        return;
+      const {data} = await axios.post("/api/lastseen", {
+        chatId: activeChat?.chatId,
+        account: account,
+        lastMessageHash: currentMessages[currentMessages.length - 1].cid,
+        timestamp: Date.now(),
+      });
+
+      if (data.success && data.user.lastSeen) {
+        setLastSeenInfo(data.user.lastSeen);
+      }
+    };
+    updateLastSeenMessage();
+  }, [activeChat, account, currentMessages, setLastSeenInfo]);
 
   const renderMessage = useCallback(
     (msg: IMessage, index: number, messages: IMessage[]) => {
