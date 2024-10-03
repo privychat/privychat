@@ -157,6 +157,10 @@ const FeedsTab = ({openSheet}: {openSheet?: () => void}) => {
       {chat &&
         feeds &&
         feeds
+          .filter(
+            (chat, index, self) =>
+              index === self.findIndex((c) => c.chatId === chat.chatId)
+          )
           .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
           .sort((a, b) => {
             if (pinnedChats.includes(a.chatId)) return -1;
@@ -199,6 +203,10 @@ const RequestsTab = ({openSheet}: {openSheet?: () => void}) => {
       {chat &&
         requests &&
         requests
+          .filter(
+            (chat, index, self) =>
+              index === self.findIndex((c) => c.chatId === chat.chatId)
+          )
           .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
           .map((chat, index) => (
             <ChatItem
@@ -238,6 +246,10 @@ const GroupsTab = ({openSheet}: {openSheet?: () => void}) => {
       {chat &&
         feeds &&
         feeds
+          .filter(
+            (chat, index, self) =>
+              index === self.findIndex((c) => c.chatId === chat.chatId)
+          )
           .filter((chat) => chat.isGroup)
           .sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
           .sort((a, b) => {

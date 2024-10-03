@@ -23,7 +23,6 @@ const EmojiPickerTab = ({
   const {setFeedContent} = chat as IChat;
   const {sendMessage} = usePush();
   const handleSendReaction = (e: any) => {
-    console.log("reaction clicked", e.emoji, messageCid);
     setFeedContent((prev) => {
       const currentChatHistory = prev[activeChat?.chatId!] || [];
       const randomId = generateRandomString(10); // not the right way to do it but for timebeing
