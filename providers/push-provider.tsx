@@ -96,7 +96,10 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   };
 
   const handleIncomingMessage = useCallback((stream: IStreamMessage) => {
-    if (stream.event !== "chat.message" || stream.origin === STREAM_SOURCE.SELF)
+    if (
+      stream.origin === STREAM_SOURCE.SELF ||
+      (stream.event !== "chat.request" && stream.event !== "chat.message")
+    )
       return;
 
     const {chatId, from, message, timestamp, reference, meta} = stream;
