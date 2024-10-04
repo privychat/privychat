@@ -233,16 +233,17 @@ const ChatBubble: React.FC<IChatBubbleProps> = ({
           >
             {convertUnixTimestampToHHMM(timestamp)}
           </span>
-          {sender.slice(7).toLowerCase() === account!.toLowerCase() && (
-            <CheckCheck
-              size={"16px"}
-              className={`mr-2 ${
-                lastSeenTimeStampSender && lastSeenTimeStampSender > timestamp
-                  ? "text-blue-400 "
-                  : "text-muted-foreground"
-              }`}
-            />
-          )}
+          {sender.slice(7).toLowerCase() === account!.toLowerCase() &&
+            !activeChat?.isGroup && (
+              <CheckCheck
+                size={"16px"}
+                className={`mr-2 ${
+                  lastSeenTimeStampSender && lastSeenTimeStampSender > timestamp
+                    ? "text-blue-400 "
+                    : "text-muted-foreground"
+                }`}
+              />
+            )}
         </div>
         {renderReactions()}
         {userHoverOnMessage && (
