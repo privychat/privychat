@@ -130,16 +130,27 @@ const ChatInput = () => {
     }
     setInput("");
   }, [activeChat]);
-
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      const lineCount = input.split("\n").length;
+      const lineHeight = 24;
+      const padding = 16;
+      const maxHeight = 8 * 16;
+      const newHeight = Math.min(lineCount * lineHeight + padding, maxHeight);
+      inputRef.current.style.height = `${Math.max(40, newHeight)}px`;
+      inputRef.current.style.borderRadius = `${newHeight > 40 ? 20 : 100}px`;
+    }
+  }, [input]);
   return (
     <div
-      className={`relative flex flex-row items-center justify-center h-14 rounded-md gap-2 p-2 pt-1 ${
+      className={`relative flex flex-row bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 items-end justify-center min-h-12 max-h-[576px] mx-2 p-2 mt-1 rounded-md gap-2 ${
         isFocused ? "mb-1" : "mb-8"
       } md:mb-1`}
     >
-      <div className="h-full bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 rounded-md flex items-center justify-center">
+      <div className="h-10 rounded-md flex items-center justify-center">
         <Smile
-          className="text-white/50 cursor-pointer mx-2"
+          className="text-white/50 cursor-pointer mx-1"
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
         />
       </div>
@@ -157,15 +168,12 @@ const ChatInput = () => {
 
       <Textarea
         ref={inputRef}
-        className="w-full h-full  bg-secondary rounded-md text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none resize-none overflow-y-auto"
+        className="w-full min-h-10 max-h-32 pl-4 bg-secondary text-sm focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none resize-none overflow-y-auto"
         placeholder="Type a message"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && e.shiftKey) {
-            return;
-          }
-          if (e.key === "Enter") {
+          if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSend();
           }
@@ -175,7 +183,7 @@ const ChatInput = () => {
         inputMode="search"
       />
       <Button
-        className="bg-primary h-full p-2 px-3 cursor-pointer rounded-md"
+        className="bg-primary h-10 p-2 cursor-pointer rounded-full"
         onClick={handleSend}
       >
         <SendHorizontal />
