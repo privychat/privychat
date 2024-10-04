@@ -142,11 +142,30 @@ const ChatInput = () => {
       inputRef.current.style.borderRadius = `${newHeight > 40 ? 20 : 100}px`;
     }
   }, [input]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        !e
+          .composedPath()
+          .includes(document.getElementById("input-emoji-picker")!)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
   return (
     <div
       className={`relative flex flex-row  items-end justify-center min-h-12 max-h-[576px] mx-2 p-2 mt-1 rounded-md gap-2 ${
         isFocused ? "mb-1" : "mb-8"
       } md:mb-1`}
+      id="input-emoji-picker"
     >
       <div className="h-10 rounded-md flex items-center justify-center">
         <Smile

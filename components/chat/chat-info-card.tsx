@@ -86,21 +86,21 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
         )}
       {activeChat?.chatId && !pinnedChats.includes(activeChat.chatId) && (
         <Button
-          className="flex ml-auto "
+          className="flex ml-auto bg-transparent font-light"
           variant={"outline"}
           onClick={pinChatHandler}
         >
-          <PinIcon size={"16px"} className="mr-2" /> Pin Chat
+          <PinIcon size={"16px"} className="mr-2 text-primary" /> Pin Chat
         </Button>
       )}
 
       {activeChat?.chatId && pinnedChats.includes(activeChat.chatId) && (
         <Button
-          className="flex ml-auto "
+          className="flex ml-auto bg-transparent font-light"
           variant={"outline"}
           onClick={removePinChatHandler}
         >
-          <PinOff size={"16px"} className="mr-2" /> Unpin
+          <PinOff size={"16px"} className="mr-2 text-primary" /> Unpin
         </Button>
       )}
     </div>

@@ -25,7 +25,7 @@ const ChatMessageProcessor = ({message}: {message: string}) => {
             href={part}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline text-wrap break-words whitespace-pre-wrap text-xs"
+            className="text-primary hover:underline text-wrap break-words whitespace-pre-wrap text-sm"
           >
             {part}
           </a>
@@ -74,7 +74,7 @@ const ChatMessageProcessor = ({message}: {message: string}) => {
         </div>
       )}
 
-      <div className=" px-3 pt-3 text-wrap break-words text-white/75 whitespace-pre-wrap text-xs w-full overflow-hidden">
+      <div className=" px-3 pt-3 text-wrap break-words text-white/75 whitespace-pre-wrap text-sm w-full overflow-hidden">
         {parsedMessage}
       </div>
     </div>
