@@ -144,7 +144,7 @@ const ChatInput = () => {
   }, [input]);
   return (
     <div
-      className={`relative flex flex-row bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20 items-end justify-center min-h-12 max-h-[576px] mx-2 p-2 mt-1 rounded-md gap-2 ${
+      className={`relative flex flex-row  items-end justify-center min-h-12 max-h-[576px] mx-2 p-2 mt-1 rounded-md gap-2 ${
         isFocused ? "mb-1" : "mb-8"
       } md:mb-1`}
     >
