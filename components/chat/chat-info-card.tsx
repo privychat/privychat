@@ -15,17 +15,7 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   const {reverseResolveDomain, pinChat, removePinChat} = usePush();
   const {toast} = useToast();
   const [chatName, setChatName] = useState<string>();
-  const fetchDomainName = async () => {
-    if (!activeChat?.did || activeChat?.isGroup) {
-      return;
-    }
 
-    const name = await reverseResolveDomain(activeChat?.did.slice(7)!);
-    if ("error" in name) {
-      return;
-    }
-    setChatName(name.name[0] ?? trimAddress(activeChat?.did.slice(7)!));
-  };
   const pinChatHandler = async () => {
     const pinnedChats = await pinChat(activeChat?.chatId!);
     if (pinnedChats.success) {
@@ -55,18 +45,23 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
       });
     }
   };
-  useEffect(() => {
-    fetchDomainName();
-  }, [activeChat]);
 
   useEffect(() => {
+    const fetchDomainName = async () => {
+      const name = await reverseResolveDomain(activeChat?.did.slice(7)!);
+      if ("error" in name) {
+        setChatName(trimAddress(activeChat?.did.slice(7)!));
+        return;
+      }
+      setChatName(name.name[0] ?? trimAddress(activeChat?.did.slice(7)!));
+    };
     if (activeChat && activeChat?.did?.slice(7) in contactBook) {
       setChatName(contactBook[activeChat.did.slice(7)]);
       return;
     } else if (activeChat?.isGroup)
       setChatName(activeChat?.groupName || activeChat?.chatId!);
-    else setChatName(trimAddress(activeChat?.did.slice(7)!));
-  }, [activeChat, contactBook]);
+    else fetchDomainName();
+  }, [activeChat, contactBook, reverseResolveDomain]);
   return (
     <div className="flex flex-row gap-2 items-center h-14 mx-2 rounded-md p-2 mt-1 bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-20">
       {closeSheet && (
