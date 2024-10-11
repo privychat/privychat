@@ -1,5 +1,6 @@
 import mongoose, {Document, Model} from "mongoose";
 import {getAddress} from "viem";
+import {NextRequest, NextResponse} from "next/server";
 
 interface Contacts {
   [key: string]: string;
@@ -8,13 +9,18 @@ interface Contacts {
 interface IUser extends Document {
   address: string;
   contacts: Contacts;
+  lastSeen: Array<{
+    chatId: string;
+    timestamp: number;
+    lastMessageHash: string;
+  }>;
 }
+
 const LastSeenItemSchema = new mongoose.Schema(
   {
     chatId: {
       type: String,
       required: true,
-      unique: true,
     },
     timestamp: {
       type: Number,
@@ -23,7 +29,6 @@ const LastSeenItemSchema = new mongoose.Schema(
     lastMessageHash: {
       type: String,
       required: true,
-      unique: true,
     },
   },
   {_id: false}
@@ -40,7 +45,6 @@ const UserSchema = new mongoose.Schema({
     type: Map,
     of: String,
     default: new Map(),
-
     validate: {
       validator: function (this: IUser, v: Map<string, string>) {
         return Array.from(v.entries()).every(
@@ -58,12 +62,15 @@ const UserSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
-
   lastSeen: {
     type: [LastSeenItemSchema],
     default: [],
   },
 });
+
+// Remove unique constraints from the schema level
+UserSchema.index({"lastSeen.chatId": 1}, {unique: false});
+UserSchema.index({"lastSeen.lastMessageHash": 1}, {unique: false});
 
 const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
 

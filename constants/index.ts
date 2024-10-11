@@ -12,6 +12,7 @@ enum MESSAGE_TYPE {
   IMAGE = "Image",
   REACTION = "Reaction",
   GIF = "GIF",
+  REPLY = "Reply",
 }
 
 const SUPPORTED_DOMAINS = [

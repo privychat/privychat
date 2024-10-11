@@ -1,5 +1,5 @@
-import {CHAT_TYPE} from "@/constants";
-import {GroupDTO, GroupMember, IUser, PushAPI} from "@pushprotocol/restapi";
+import {CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
+import {GroupDTO, IUser, PushAPI} from "@pushprotocol/restapi";
 
 interface IStreamMessage {
   event: string;
@@ -10,7 +10,15 @@ interface IStreamMessage {
   to: string[];
   message: {
     type: string;
-    content: string;
+    content:
+      | string
+      | {
+          messageText: string;
+          messageObj: {
+            content: string;
+          };
+        };
+    reference?: string;
   };
   meta: {
     group: boolean;
@@ -22,7 +30,10 @@ interface IMessage {
   to: string;
   from: string;
   type: string;
-  messageContent: {content: string; reference?: string};
+  messageContent: {
+    content: string;
+    reference?: string;
+  };
   timestamp: number;
   link: string;
 }
@@ -64,6 +75,19 @@ interface IChat {
   setPinnedChats: React.Dispatch<React.SetStateAction<string[]>>;
   lastSeenInfo: IlastSeenInfo[];
   setLastSeenInfo: React.Dispatch<React.SetStateAction<IlastSeenInfo[]>>;
+  replyRef: {
+    cid: string;
+    message: string;
+    sender: string;
+  } | null;
+  setReplyRef: React.Dispatch<
+    React.SetStateAction<{
+      cid: string;
+      message: string;
+      sender: string;
+    } | null>
+  >;
+  latestStreamMessage: IStreamMessage | null;
 }
 interface IAppContext {
   isUserAuthenticated: boolean;
@@ -96,6 +120,7 @@ interface IChatBubbleProps {
   reactions?: IMessage[];
   cid: string;
   lastSeenTimeStampSender?: number;
+  replyReference?: string;
 }
 
 interface IlastSeenInfo {
@@ -103,6 +128,32 @@ interface IlastSeenInfo {
   timestamp: number;
   lastMessageHash: string;
 }
+
+type MessageContent = string | {type: string; content: string};
+
+interface SendMessageParams {
+  chatId: string;
+  message: MessageContent;
+  reference?: string;
+  type: MESSAGE_TYPE;
+}
+
+interface BaseMessage {
+  content: string | {type: string; content: string};
+  type: MESSAGE_TYPE;
+}
+
+interface ReactionMessage extends BaseMessage {
+  type: MESSAGE_TYPE.REACTION;
+  reference: string;
+}
+
+interface ReplyMessage extends BaseMessage {
+  type: MESSAGE_TYPE.REPLY;
+  reference: string;
+}
+
+type Message = BaseMessage | ReactionMessage | ReplyMessage;
 export type {
   IStreamMessage,
   IMessage,
@@ -111,4 +162,6 @@ export type {
   IAppContext,
   IChatBubbleProps,
   IlastSeenInfo,
+  MessageContent,
+  SendMessageParams,
 };

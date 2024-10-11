@@ -3,8 +3,9 @@ import axios from "axios";
 
 import {useAppContext} from "./use-app-context";
 import {MESSAGE_TYPE} from "@/constants";
-import {IChat, IStreamMessage} from "@/types";
+import {IChat, SendMessageParams} from "@/types";
 import {getAddress} from "viem";
+import {Message} from "@pushprotocol/restapi";
 const usePush = () => {
   const {pushUser, chat, account} = useAppContext();
   const {setFeedContent} = chat as IChat;
@@ -165,69 +166,70 @@ const usePush = () => {
       };
     }
   };
-
   const sendMessage = async ({
     chatId,
     message,
     reference,
     type,
-  }: {
-    chatId: string;
-    message: string;
-    reference?: string;
-    type: MESSAGE_TYPE;
-  }) => {
-    if (!pushUser)
-      return {
-        error: "User not authenticated",
-      };
+  }: SendMessageParams): Promise<any> => {
+    if (!pushUser) {
+      throw new Error("User not authenticated");
+    }
+
     try {
+      let messageToSend: Message;
+
       if (type === MESSAGE_TYPE.REACTION) {
-        const sentMessage = await pushUser.chat.send(chatId, {
+        if (typeof message !== "string" || !reference) {
+          throw new Error("Invalid parameters for REACTION message");
+        }
+        messageToSend = {
           content: message,
-          type: type,
-          reference: reference!,
-        });
-        return sentMessage;
+          type,
+          reference,
+        };
+      } else if (type === MESSAGE_TYPE.REPLY) {
+        if (typeof message !== "object" || !reference) {
+          throw new Error("Invalid parameters for REPLY message");
+        }
+        messageToSend = {
+          content: message,
+          type,
+          reference,
+        };
       } else {
-        const sentMessage = await pushUser.chat.send(chatId, {
+        if (typeof message !== "string") {
+          throw new Error(
+            "Invalid message type for non-REACTION and non-REPLY messages"
+          );
+        }
+        messageToSend = {
           content: message,
-          type: type,
-        });
-        return sentMessage;
+          type,
+        };
       }
+
+      return await pushUser.chat.send(chatId, messageToSend);
     } catch (error) {
-      return {
-        error: error,
-      };
+      console.error("Error sending message:", error);
+      throw error;
     }
   };
 
-  const incomingMessageHandler = async (stream: IStreamMessage) => {
-    if (stream.event !== "chat.message") return;
-    const {chatId, from, message, meta, timestamp, reference} = stream;
-    setFeedContent((prev) => {
-      const currentChatHistory = prev[chatId] || [];
-      return {
-        ...prev,
-        [chatId]: [
-          ...currentChatHistory,
-          {
-            cid: reference,
-            from: from,
-            to: chatId,
-            timestamp: new Date(timestamp).getTime(),
-            messageContent: {
-              content: message.content,
-            },
-            link: "",
-            type: message.type,
-          },
-        ],
-      };
-    });
+  const getMessageInfo = async (cid: string, sender: string) => {
+    if (!pushUser) {
+      throw new Error("User not authenticated");
+    }
+    try {
+      const messageInfo = await pushUser.chat.message(sender, {
+        reference: cid,
+      });
+      return messageInfo;
+    } catch (error) {
+      console.error("Error getting message info:", error);
+      throw error;
+    }
   };
-
   const pinChat = async (chatId: string) => {
     try {
       const response = await axios.post(`/api/pin-chat`, {
@@ -265,7 +267,7 @@ const usePush = () => {
     reverseResolveDomain,
     sendMessage,
     resolveDomain,
-    incomingMessageHandler,
+    getMessageInfo,
     addContact,
     pinChat,
     removePinChat,

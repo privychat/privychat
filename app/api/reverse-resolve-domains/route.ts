@@ -23,8 +23,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(JSON.parse(cachedResult));
     }
 
-    console.log("Fetching from API");
-
     const publicClient = createPublicClient({
       chain: mainnet,
       transport: http(

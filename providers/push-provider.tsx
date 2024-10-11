@@ -4,7 +4,7 @@ import {usePrivy} from "@privy-io/react-auth";
 import {useWalletClient} from "wagmi";
 import {CONSTANTS, Env, IUser, PushAPI} from "@pushprotocol/restapi";
 import {AppContext} from "@/context/app-context";
-import {CHAT_TYPE, DEFAULT_PFP, STREAM_SOURCE} from "@/constants";
+import {CHAT_TYPE, DEFAULT_PFP, MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {IFeeds, IMessage, IStreamMessage, IlastSeenInfo} from "@/types";
 import {getAddress} from "viem";
@@ -44,7 +44,13 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
   const [activeChatTab, setActiveChatTab] = useState<CHAT_TYPE>(CHAT_TYPE.ALL);
-
+  const [replyRef, setReplyRef] = useState<{
+    cid: string;
+    message: string;
+    sender: string;
+  } | null>(null);
+  const [latestStreamMessage, setLatestStreamMessage] =
+    useState<IStreamMessage | null>(null);
   // Refs
   const feedsRef = useRef(feeds);
   const feedContentRef = useRef(feedContent);
@@ -71,8 +77,6 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       setPushUser(user);
       setAccount(user.account);
 
-      if (pushStreamRef.current?.disconnected === false) return;
-
       const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
       setupStreamListeners(stream);
 
@@ -82,7 +86,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     } catch (error) {
       console.error("Failed to initialize Push user:", error);
     }
-  }, [signer]);
+  }, []);
 
   const setupStreamListeners = (stream: any) => {
     stream.on(CONSTANTS.STREAM.CONNECT, () => console.log("Stream Connected"));
@@ -96,6 +100,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   };
 
   const handleIncomingMessage = useCallback((stream: IStreamMessage) => {
+    setLatestStreamMessage(stream);
+
     if (
       stream.origin === STREAM_SOURCE.SELF ||
       (stream.event !== "chat.request" && stream.event !== "chat.message")
@@ -104,12 +110,26 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
     const {chatId, from, message, timestamp, reference, meta} = stream;
     const isGroup = meta.group;
+
+    let messageContent: string;
+    let messageReference: string | undefined;
+
+    if (typeof message.content === "string") {
+      messageContent = message.content;
+    } else {
+      messageContent = message.content.messageObj.content;
+    }
+    messageReference = message.reference;
+
     const newMessage: IMessage = {
       cid: reference,
       from,
       to: chatId,
       timestamp: Number(timestamp),
-      messageContent: {content: message.content},
+      messageContent: {
+        content: messageContent,
+        reference: messageReference,
+      },
       link: reference,
       type: message.type,
     };
@@ -290,6 +310,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
             limit: 15,
           });
           if (!history) return;
+
           const historyFormatted: IMessage[] = history
             .map((msg) => ({
               cid: msg.cid,
@@ -297,7 +318,10 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
               from: msg.fromDID,
               type: msg.messageType,
               messageContent: {
-                content: msg.messageObj?.content ?? msg.messageContent ?? "",
+                content:
+                  msg.messageType === MESSAGE_TYPE.REPLY
+                    ? msg.messageObj.content.messageObj.content
+                    : msg.messageObj?.content ?? msg.messageContent,
                 ...(msg.messageObj?.reference && {
                   reference: msg.messageObj.reference,
                 }),
@@ -457,6 +481,9 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       setPinnedChats,
       lastSeenInfo,
       setLastSeenInfo,
+      replyRef,
+      setReplyRef,
+      latestStreamMessage,
     },
     pushStream: pushStreamRef,
     activeChat,
