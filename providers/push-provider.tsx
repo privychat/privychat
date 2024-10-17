@@ -63,6 +63,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   const initializePushUser = useCallback(async () => {
     try {
       const {userAccount, userKey} = getUserKeys();
+
       if (!userAccount && !userKey && !signer) return;
 
       const user = await PushAPI.initialize(signer, {
@@ -86,7 +87,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     } catch (error) {
       console.error("Failed to initialize Push user:", error);
     }
-  }, []);
+  }, [signer]);
 
   const setupStreamListeners = (stream: any) => {
     stream.on(CONSTANTS.STREAM.CONNECT, () => console.log("Stream Connected"));
@@ -205,7 +206,12 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
         const chats = await pushUser.chat.list("CHATS", {limit: 10, page});
         if (!chats) return;
 
-        const formattedChats = chats.map(formatChat);
+        const formattedChats = chats
+          .map((chat) => ({
+            chatType: "CHATS",
+            ...chat,
+          }))
+          .map(formatChat);
         if (page === 1) {
           setFeeds(formattedChats);
         } else
@@ -245,7 +251,12 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
         });
         if (!requests) return;
 
-        const formattedRequests = requests.map(formatChat);
+        const formattedRequests = requests
+          .map((chat) => ({
+            chatType: "REQUESTS",
+            ...chat,
+          }))
+          .map(formatChat);
         if (page === 1) {
           setRequests(formattedRequests);
         } else
@@ -283,6 +294,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     isGroup: !!chat.groupInformation?.chatId,
     groupName: chat.groupInformation?.groupName,
     groupParticipants: chat.groupInformation?.members,
+    chatType: chat.chatType,
   });
 
   const getUserDetails = useCallback(async () => {
@@ -444,7 +456,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     const localUser = getUserKeys();
     setIsUserAuthenticated(
       !!(
-        (localUser.userAccount && localUser.userKey) ||
+        (localUser && localUser.userAccount && localUser.userKey) ||
         (authenticated && signer)
       )
     );
@@ -455,7 +467,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     return () => {
       if (pushStreamRef.current) pushStreamRef.current.disconnect();
     };
-  }, [initializePushUser]);
+  }, []);
 
   const contextValue = {
     isUserAuthenticated,

@@ -1,6 +1,6 @@
 "use client";
 import React, {useEffect, useRef, useState, useCallback, useMemo} from "react";
-import {CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
+import {CHAT_SIDE, CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {IChat, IlastSeenInfo, IMessage} from "@/types";

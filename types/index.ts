@@ -46,6 +46,7 @@ interface IFeeds {
   isGroup: boolean;
   groupName?: string;
   groupParticipants?: GroupDTO["members"];
+  chatType?: "CHATS" | "REQUESTS";
 }
 interface IChat {
   feeds: IFeeds[] | null;

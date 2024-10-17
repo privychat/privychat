@@ -78,7 +78,9 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
         className="rounded-full w-10 h-10"
       />
       <p className="text-sm font-medium text-ellipsis text-nowrap overflow-hidden">
-        {chatName || trimAddress(activeChat?.did.slice(7)!)}
+        {chatName ||
+          trimAddress(activeChat?.did?.slice(7)!) ||
+          activeChat?.did?.slice(7)}
       </p>
       {!activeChat?.isGroup &&
         activeChat &&
