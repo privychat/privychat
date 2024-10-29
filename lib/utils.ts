@@ -105,7 +105,10 @@ function generateRandomString(length: number): string {
   return result;
 }
 
-function extractWebLinks(message: string): string[] {
+function extractWebLinks(message: string | object): string[] {
+  if (typeof message !== "string") {
+    return [];
+  }
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const matches = message.match(urlRegex);
   return matches ? matches : [];

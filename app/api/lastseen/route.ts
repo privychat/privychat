@@ -6,31 +6,28 @@ import {getAddress} from "viem";
 export async function POST(request: NextRequest) {
   const {chatId, account, lastMessageHash, timestamp} = await request.json();
   if (!chatId || !account || !lastMessageHash || !timestamp) {
-    return NextResponse.json({
-      success: false,
-      error: "ChatId, account, lastMessageHash, and timestamp are required",
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: "ChatId, account, lastMessageHash, and timestamp are required",
+      },
+      {status: 400}
+    );
   }
+
   try {
     await connectToDatabase();
     const address = getAddress(account);
 
-    let user = await User.findOneAndUpdate(
+    const user = await User.findOneAndUpdate(
+      {address: address},
       {
-        address: address,
-        "lastSeen.chatId": chatId,
-      },
-      {
-        $set: {
-          "lastSeen.$.lastMessageHash": lastMessageHash,
-          "lastSeen.$.timestamp": timestamp,
-        },
-      },
-      {new: true}
+        $pull: {lastSeen: {chatId: chatId}},
+      }
     );
 
-    if (!user) {
-      user = await User.findOneAndUpdate(
+    if (user) {
+      await User.findOneAndUpdate(
         {address: address},
         {
           $push: {
@@ -41,11 +38,23 @@ export async function POST(request: NextRequest) {
             },
           },
         },
-        {new: true, upsert: true}
+        {new: true}
       );
+    } else {
+      await User.create({
+        address: address,
+        lastSeen: [
+          {
+            chatId,
+            lastMessageHash,
+            timestamp,
+          },
+        ],
+      });
     }
 
-    return NextResponse.json({success: true, user});
+    const updatedUser = await User.findOne({address: address});
+    return NextResponse.json({success: true, user: updatedUser});
   } catch (error) {
     console.error("Error in POST /api/lastSeen:", error);
     return NextResponse.json(
@@ -63,18 +72,25 @@ export async function GET(request: NextRequest) {
       {status: 400}
     );
   }
+
   try {
     await connectToDatabase();
-    const user = await User.findOne({address: getAddress(address)});
+    const normalizedAddress = getAddress(address);
+
+    let user = await User.findOne({address: normalizedAddress});
     if (!user) {
-      const user = await User.create({address: getAddress(address)});
-      return NextResponse.json(
-        {success: false, error: "User not found"},
-        {status: 404}
-      );
+      user = await User.create({
+        address: normalizedAddress,
+        lastSeen: [],
+      });
     }
+
     return NextResponse.json({success: true, lastSeen: user.lastSeen});
   } catch (error) {
-    return NextResponse.json({success: false, error: error}, {status: 500});
+    console.error("Error in GET /api/lastSeen:", error);
+    return NextResponse.json(
+      {success: false, error: String(error)},
+      {status: 500}
+    );
   }
 }

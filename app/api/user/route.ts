@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
   const userData = await request.json();
   const result = await createUser(userData);
 
-  console.log("result", result);
   return NextResponse.json(result, {status: result.success ? 201 : 400});
 }
 

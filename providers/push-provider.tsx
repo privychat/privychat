@@ -4,7 +4,7 @@ import {usePrivy} from "@privy-io/react-auth";
 import {useWalletClient} from "wagmi";
 import {CONSTANTS, Env, IUser, PushAPI} from "@pushprotocol/restapi";
 import {AppContext} from "@/context/app-context";
-import {CHAT_TYPE, DEFAULT_PFP, STREAM_SOURCE} from "@/constants";
+import {CHAT_TYPE, DEFAULT_PFP, MESSAGE_TYPE, STREAM_SOURCE} from "@/constants";
 import {getUserKeys, playNotification, saveUserKeys} from "@/lib/utils";
 import {IFeeds, IMessage, IStreamMessage, IlastSeenInfo} from "@/types";
 import {getAddress} from "viem";
@@ -44,7 +44,13 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   const [activeChat, setActiveChat] = useState<IFeeds | null>(null);
   const [chatSearch, setChatSearch] = useState<string>("");
   const [activeChatTab, setActiveChatTab] = useState<CHAT_TYPE>(CHAT_TYPE.ALL);
-
+  const [replyRef, setReplyRef] = useState<{
+    cid: string;
+    message: string;
+    sender: string;
+  } | null>(null);
+  const [latestStreamMessage, setLatestStreamMessage] =
+    useState<IStreamMessage | null>(null);
   // Refs
   const feedsRef = useRef(feeds);
   const feedContentRef = useRef(feedContent);
@@ -57,6 +63,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   const initializePushUser = useCallback(async () => {
     try {
       const {userAccount, userKey} = getUserKeys();
+
       if (!userAccount && !userKey && !signer) return;
 
       const user = await PushAPI.initialize(signer, {
@@ -70,8 +77,6 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       saveUserKeys(user.decryptedPgpPvtKey, user.account);
       setPushUser(user);
       setAccount(user.account);
-
-      if (pushStreamRef.current?.disconnected === false) return;
 
       const stream = await user.initStream([CONSTANTS.STREAM.CHAT]);
       setupStreamListeners(stream);
@@ -96,6 +101,8 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
   };
 
   const handleIncomingMessage = useCallback((stream: IStreamMessage) => {
+    setLatestStreamMessage(stream);
+
     if (
       stream.origin === STREAM_SOURCE.SELF ||
       (stream.event !== "chat.request" && stream.event !== "chat.message")
@@ -104,12 +111,26 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
 
     const {chatId, from, message, timestamp, reference, meta} = stream;
     const isGroup = meta.group;
+
+    let messageContent: string;
+    let messageReference: string | undefined;
+
+    if (typeof message.content === "string") {
+      messageContent = message.content;
+    } else {
+      messageContent = message.content.messageObj.content;
+    }
+    messageReference = message.reference;
+
     const newMessage: IMessage = {
       cid: reference,
       from,
       to: chatId,
       timestamp: Number(timestamp),
-      messageContent: {content: message.content},
+      messageContent: {
+        content: messageContent,
+        reference: messageReference,
+      },
       link: reference,
       type: message.type,
     };
@@ -185,7 +206,12 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
         const chats = await pushUser.chat.list("CHATS", {limit: 10, page});
         if (!chats) return;
 
-        const formattedChats = chats.map(formatChat);
+        const formattedChats = chats
+          .map((chat) => ({
+            chatType: "CHATS",
+            ...chat,
+          }))
+          .map(formatChat);
         if (page === 1) {
           setFeeds(formattedChats);
         } else
@@ -225,7 +251,12 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
         });
         if (!requests) return;
 
-        const formattedRequests = requests.map(formatChat);
+        const formattedRequests = requests
+          .map((chat) => ({
+            chatType: "REQUESTS",
+            ...chat,
+          }))
+          .map(formatChat);
         if (page === 1) {
           setRequests(formattedRequests);
         } else
@@ -263,6 +294,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     isGroup: !!chat.groupInformation?.chatId,
     groupName: chat.groupInformation?.groupName,
     groupParticipants: chat.groupInformation?.members,
+    chatType: chat.chatType,
   });
 
   const getUserDetails = useCallback(async () => {
@@ -290,6 +322,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
             limit: 15,
           });
           if (!history) return;
+
           const historyFormatted: IMessage[] = history
             .map((msg) => ({
               cid: msg.cid,
@@ -297,7 +330,10 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
               from: msg.fromDID,
               type: msg.messageType,
               messageContent: {
-                content: msg.messageObj?.content ?? msg.messageContent ?? "",
+                content:
+                  msg.messageType === MESSAGE_TYPE.REPLY
+                    ? msg.messageObj.content.messageObj.content
+                    : msg.messageObj?.content ?? msg.messageContent,
                 ...(msg.messageObj?.reference && {
                   reference: msg.messageObj.reference,
                 }),
@@ -420,7 +456,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     const localUser = getUserKeys();
     setIsUserAuthenticated(
       !!(
-        (localUser.userAccount && localUser.userKey) ||
+        (localUser && localUser.userAccount && localUser.userKey) ||
         (authenticated && signer)
       )
     );
@@ -431,7 +467,7 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
     return () => {
       if (pushStreamRef.current) pushStreamRef.current.disconnect();
     };
-  }, [initializePushUser]);
+  }, []);
 
   const contextValue = {
     isUserAuthenticated,
@@ -457,6 +493,9 @@ export default function AppProvider({children}: {children: React.ReactNode}) {
       setPinnedChats,
       lastSeenInfo,
       setLastSeenInfo,
+      replyRef,
+      setReplyRef,
+      latestStreamMessage,
     },
     pushStream: pushStreamRef,
     activeChat,

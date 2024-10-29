@@ -1,6 +1,6 @@
 "use client";
 import React, {useEffect, useRef, useState, useCallback, useMemo} from "react";
-import {CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
+import {CHAT_SIDE, CHAT_TYPE, MESSAGE_TYPE} from "@/constants";
 import {useAppContext} from "@/hooks/use-app-context";
 import usePush from "@/hooks/use-push";
 import {IChat, IlastSeenInfo, IMessage} from "@/types";
@@ -34,6 +34,7 @@ const ChatMessagesContainer: React.FC = () => {
     setFeedContent,
     chatHistoryLoaders,
     setLastSeenInfo,
+    latestStreamMessage,
   } = chat as IChat;
   const {getChatHistory} = usePush();
 
@@ -46,7 +47,12 @@ const ChatMessagesContainer: React.FC = () => {
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const scrollOptions: ScrollIntoViewOptions = {
+        behavior: "auto",
+        block: "end",
+      };
+      scrollRef.current.scrollTo(0, scrollRef.current.scrollHeight);
+      scrollRef.current.lastElementChild?.scrollIntoView(scrollOptions);
     }
   }, []);
 
@@ -129,12 +135,6 @@ const ChatMessagesContainer: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (isNearBottom) {
-      scrollToBottom();
-    }
-  }, [currentMessages, scrollToBottom, isNearBottom, activeChat]);
-
-  useEffect(() => {
     if (activeChat?.isGroup && currentMessages && currentMessages.length > 0) {
       const participants = Array.from(
         new Set(currentMessages.map((message) => message.from))
@@ -148,8 +148,23 @@ const ChatMessagesContainer: React.FC = () => {
   }, [currentMessages, scrollToBottom, isNearBottom, activeChat]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (activeChat) {
+      // Reset pagination and loading states
+      setStopPagination(false);
+      setLoading(false);
+
+      // Use a short timeout to ensure the DOM has updated
+      setTimeout(() => {
+        scrollToBottom();
+      }, 0);
+    }
   }, [activeChat, scrollToBottom]);
+
+  useEffect(() => {
+    if (isNearBottom || latestStreamMessage) {
+      scrollToBottom();
+    }
+  }, [currentMessages, scrollToBottom, isNearBottom, latestStreamMessage]);
 
   useEffect(() => {
     const updateLastSeenMessage = async () => {
@@ -205,6 +220,33 @@ const ChatMessagesContainer: React.FC = () => {
           message.type === MESSAGE_TYPE.REACTION &&
           message.messageContent?.reference === msg.cid
       );
+
+      if (
+        msg.type === MESSAGE_TYPE.REPLY &&
+        typeof msg.messageContent === "object"
+      )
+        return (
+          <React.Fragment key={msg.link}>
+            {showTimestampBadge(messages, index) && (
+              <div className="flex w-full justify-center items-center my-4">
+                <p className="w-fit text-xs px-2 py-1 bg-transparent text-gray-400">
+                  {convertUnixTimestamp(msg.timestamp, true)}
+                </p>
+              </div>
+            )}
+            <ChatBubble
+              message={msg.messageContent.content}
+              sender={msg.from}
+              timestamp={msg.timestamp}
+              titleColor={groupParticipants[msg.from]}
+              messageType={msg.type}
+              reactions={reactions}
+              cid={msg.cid}
+              lastSeenTimeStampSender={senderLastSeenInfo}
+              replyReference={msg.messageContent.reference}
+            />
+          </React.Fragment>
+        );
 
       return (
         <React.Fragment key={msg.link}>
@@ -264,6 +306,9 @@ const ChatMessagesContainer: React.FC = () => {
         Array.from({length: 5}).map((_, index) => (
           <ChatHistoryLoader key={index} />
         ))}
+      <div className="h-1" />{" "}
+      {/* Empty div to ensure scrolling to the very bottom */}
+      {}
     </div>
   );
 };

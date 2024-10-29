@@ -20,6 +20,7 @@ const ChatItem = ({
     chat: chatContext,
     activeChat,
     contactBook,
+    account,
   } = useAppContext();
   const {pinnedChats, lastSeenInfo, feedContent} = chatContext as IChat;
 
@@ -49,7 +50,9 @@ const ChatItem = ({
     if (!chatInLastSeenInfo) return;
 
     const unreadMessagesCount = feedContent[chat.chatId]?.filter(
-      (message) => message.timestamp > chatInLastSeenInfo.timestamp
+      (message) =>
+        message.timestamp > chatInLastSeenInfo.timestamp &&
+        message.from.slice(7).toLowerCase() !== account?.toLowerCase()
     ).length;
     if (unreadMessagesCount != undefined)
       setUnreadMessages(unreadMessagesCount);
@@ -92,7 +95,7 @@ const ChatItem = ({
             {pinnedChats.includes(chat.chatId) && (
               <Pin size={"14px"} className="ml-20" />
             )}
-            {unreadMessages > 0 && (
+            {unreadMessages > 0 && chat.chatId !== activeChat?.chatId && (
               <div className="flex justify-center items-center bg-[#24c55b] w-4 h-4 rounded-full ml-2 ">
                 <p
                   className="font-semibold text-muted text-xs p-0 m-0 "

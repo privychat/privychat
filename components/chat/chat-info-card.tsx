@@ -8,13 +8,14 @@ import NewContactButton from "../contact-book/new-contact-button";
 import {Button} from "../ui/button";
 import {IChat} from "@/types";
 import {useToast} from "@/hooks/use-toast";
+import {trim} from "viem";
 
 const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   const {activeChat, contactBook, chat} = useAppContext();
   const {pinnedChats, setPinnedChats} = chat as IChat;
   const {reverseResolveDomain, pinChat, removePinChat} = usePush();
   const {toast} = useToast();
-  const [chatName, setChatName] = useState<string>();
+  const [chatName, setChatName] = useState<string | null>(null);
 
   const pinChatHandler = async () => {
     const pinnedChats = await pinChat(activeChat?.chatId!);
@@ -47,7 +48,7 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
   };
 
   useEffect(() => {
-    const fetchDomainName = async () => {
+    const fetchDomainName: () => Promise<void> = async () => {
       const name = await reverseResolveDomain(activeChat?.did.slice(7)!);
       if ("error" in name) {
         setChatName(trimAddress(activeChat?.did.slice(7)!));
@@ -77,7 +78,9 @@ const ChatInfoCard = ({closeSheet}: {closeSheet?: () => void}) => {
         className="rounded-full w-10 h-10"
       />
       <p className="text-sm font-medium text-ellipsis text-nowrap overflow-hidden">
-        {chatName}
+        {chatName ||
+          trimAddress(activeChat?.did?.slice(7)!) ||
+          activeChat?.did?.slice(7)}
       </p>
       {!activeChat?.isGroup &&
         activeChat &&

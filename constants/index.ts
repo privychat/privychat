@@ -12,6 +12,12 @@ enum MESSAGE_TYPE {
   IMAGE = "Image",
   REACTION = "Reaction",
   GIF = "GIF",
+  REPLY = "Reply",
+}
+
+enum CHAT_SIDE {
+  CHATS = "CHATS",
+  REQUESTS = "REQUESTS",
 }
 
 const SUPPORTED_DOMAINS = [
@@ -42,4 +48,11 @@ enum STREAM_SOURCE {
   OTHERS = "other",
 }
 
-export {DEFAULT_PFP, CHAT_TYPE, MESSAGE_TYPE, SUPPORTED_DOMAINS, STREAM_SOURCE};
+export {
+  DEFAULT_PFP,
+  CHAT_TYPE,
+  MESSAGE_TYPE,
+  SUPPORTED_DOMAINS,
+  STREAM_SOURCE,
+  CHAT_SIDE,
+};

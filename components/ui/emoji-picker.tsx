@@ -73,7 +73,7 @@ const EmojiPickerTab = ({
   }, [onClose]);
   return (
     <div
-      className={`absolute bottom-2 p-0 ${
+      className={`absolute z-50 bottom-2 p-0 ${
         isSelfMessage ? "-left-10" : "-right-10"
       }`}
       id="emoji-picker"
@@ -85,7 +85,7 @@ const EmojiPickerTab = ({
         />
         {showEmojiPicker && (
           <div
-            className={`absolute -top-4 transform ${
+            className={`absolute z-50 -top-4 transform ${
               isSelfMessage
                 ? "-left-1 -translate-x-full"
                 : "-right-1 translate-x-full"
